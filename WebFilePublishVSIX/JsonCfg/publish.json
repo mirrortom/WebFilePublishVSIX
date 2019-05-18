@@ -2,7 +2,7 @@
   // 源文件目录名(例如:src/ 不能以/或者\开头,不能是绝对路径.结尾有/)
   "sourceDir": "src/",
   // 发布目录名(例如: 'dist/' 或 'd:/pubdir/' 相对路径或绝对路径,相对路径不以/或\开头,结尾有/)
-  "publishDir": "dist/",
+  "distDir": "dist/",
   // 发布前删除发布目录所有内容
   "emptyPublishDir": "true",
   // 允许发布的文件扩展名

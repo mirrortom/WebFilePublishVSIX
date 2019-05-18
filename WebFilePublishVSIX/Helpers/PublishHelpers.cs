@@ -79,12 +79,6 @@ namespace WebFilePublishVSIX
         /// <param name="filesPath"></param>
         internal static string PublishFiles(List<string> filesPath)
         {
-            // 检查src目录
-            string srcDir = SrcDir();
-            if (!Directory.Exists(srcDir))
-            {
-                return $"源码目录不存在:{Environment.NewLine}{srcDir}";
-            }
             // 建立发布目录
             string outDir = OutDir();
             try
@@ -113,7 +107,7 @@ namespace WebFilePublishVSIX
                 string itemPath = files[i];
                 // 文件从项目根目录起始的相对路径
                 string relPath = itemPath.Substring(EnvVar.ProjectDir.Length).Replace('\\', '/');
-                // 如果路径以 "JsonCfg.SourceDir" 开头,那么去掉这一段.发布目录,不要源代码根目录这一层.
+                // 如果路径以 JsonCfg.SourceDir 开头,那么去掉这一段.发布目录,不要源代码根目录这一层.
                 if (relPath.StartsWith(JsonCfg.SourceDir))
                     relPath = relPath.Substring(JsonCfg.SourceDir.Length);
                 // 目标路径
