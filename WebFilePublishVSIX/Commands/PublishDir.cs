@@ -118,7 +118,7 @@ namespace WebFilePublishVSIX
             List<string> srcfiles = new List<string>();
             foreach (string dirPath in selectedDirs)
             {
-                // 可能是文件
+                // 选中的可能是文件和目录,如果是目录才取出其中文件和子目录文件
                 if (Directory.Exists(dirPath))
                     srcfiles.AddRange(Directory.GetFiles(dirPath, "*", SearchOption.AllDirectories));
             }

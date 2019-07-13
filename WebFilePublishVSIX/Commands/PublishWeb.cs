@@ -113,20 +113,24 @@ namespace WebFilePublishVSIX
             //
             PublishHelpers.OutPutMsg("<发布项目>------" + Environment.NewLine, true);
 
-            // 1.编译项目. buildCfg : debug和release.取自当前选中的编译选项
-            string buildCfg = activeProj.ConfigurationManager.ActiveConfiguration.ConfigurationName;
-            PublishFilePackage._dte.Solution.SolutionBuild.BuildProject(buildCfg, activeProj.UniqueName, true);
-            // 编译后DLL文件所在目录.是一个相对于项目根目录起始的目录
-            string outBinDir = activeProj.ConfigurationManager.ActiveConfiguration.Properties.Item("OutputPath").Value.ToString();
-
-            // 复制dll文件到目标目录
-            string resBin = PublishHelpers.PublishBin(outBinDir);
-            if (resBin != null)
+            // 如果要发布bin目录,才编译项目
+            if (PublishHelpers.JsonCfg.BuildBin == true)
             {
-                ErrBox.Info(this.package, resBin); return;
+                // 编译项目. buildCfg : debug和release.取自当前选中的编译选项
+                string buildCfg = activeProj.ConfigurationManager.ActiveConfiguration.ConfigurationName;
+                PublishFilePackage._dte.Solution.SolutionBuild.BuildProject(buildCfg, activeProj.UniqueName, true);
+                // 编译后DLL文件所在目录.是一个相对于项目根目录起始的目录
+                string outBinDir = activeProj.ConfigurationManager.ActiveConfiguration.Properties.Item("OutputPath").Value.ToString();
+
+                // 复制dll文件到目标目录
+                string resBin = PublishHelpers.PublishBin(outBinDir);
+                if (resBin != null)
+                {
+                    ErrBox.Info(this.package, resBin); return;
+                }
             }
 
-            // 2.发布项目文件
+            // 发布项目文件
             // 取得项目中所有文件
             List<string> srcfiles = activeProj.GetItems();
             if (srcfiles.Count == 0)

@@ -56,7 +56,8 @@ namespace WebFilePublishVSIX
                 string jsonPath = Path.Combine(EnvVar.ProjectDir, EnvVar.PublishCfgName);
                 if (!File.Exists(jsonPath))
                 {
-                    JsonCfg = new PublishCfgM().InitDef();
+                    JsonCfg = new PublishCfgM();
+                    JsonCfg.InitDef();
                     return null;
                 }
                 JsonCfg = Newtonsoft.Json.JsonConvert.DeserializeObject<PublishCfgM>(File.ReadAllText(jsonPath));
@@ -149,29 +150,55 @@ namespace WebFilePublishVSIX
         private static List<string> FilterFiles(List<string> filesPath)
         {
             List<string> files = new List<string>();
+            string outDirLower = OutDir().Replace('\\', '/').ToLower();
+            string jsonPathLower = Path.Combine(EnvVar.ProjectDir, EnvVar.PublishCfgName).Replace('\\', '/').ToLower();
+            // 循环所有文件,筛选
             foreach (var itemPath in filesPath)
             {
-                string sourcePath = itemPath.Replace('\\', '/');
-                string sourcePathLower = sourcePath.ToLower();
+                string filePath = itemPath.Replace('\\', '/');
+                string filePathLower = filePath.ToLower();
 
                 // 不发布配置文件
-                string jsonPath = Path.Combine(EnvVar.ProjectDir, EnvVar.PublishCfgName);
-                if (sourcePathLower == jsonPath.ToLower().Replace('\\', '/'))
+                if (filePathLower == jsonPathLower)
+                    continue;
+
+                // 可能是个目录,要排除
+                if (Directory.Exists(filePath))
                     continue;
 
                 // 只发布支持的扩展名
-                if (JsonCfg.AllowExts.FirstOrDefault(o => o.ToLower() == Path.GetExtension(sourcePathLower)) == null)
+                if (JsonCfg.AllowExts.FirstOrDefault(o => o.ToLower() == Path.GetExtension(filePathLower)) == null)
                 {
                     continue;
                 }
 
-                // 排除不允许发布的扩展名
-                if (JsonCfg.DenyExts.FirstOrDefault
-                    (o => sourcePathLower.EndsWith(o.ToLower())) != null)
+                // 排除不允许发布的文件后缀名
+                if (JsonCfg.DenySuffix.FirstOrDefault
+                    (o => filePathLower.EndsWith(o.ToLower())) != null)
                 {
                     continue;
                 }
-                files.Add(sourcePath);
+
+                // 排除不允许发布的目录,比较文件目录,是否为禁发目录开头
+                if (JsonCfg.DenyDirs != null)
+                {
+                    if (JsonCfg.DenyDirs.FirstOrDefault
+                        (o => filePathLower.StartsWith(o.ToLower())) != null)
+                        continue;
+                }
+                // 排除不允许发布的文件,比较文件全路径名
+                if (JsonCfg.DenyFiles != null)
+                {
+                    if (JsonCfg.DenyFiles.FirstOrDefault
+                        (o => filePathLower == o.ToLower()) != null)
+                        continue;
+                }
+                // 如果文件位于发布目录下要排除掉.例如发布目录是默认值dist时,
+                // 是位于项目根目录下的dist文件夹,如果包含进项目,就会发生此情况
+                if (filePathLower.StartsWith(outDirLower))
+                    continue;
+                //
+                files.Add(filePath);
             }
             return files;
         }

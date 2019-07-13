@@ -1,12 +1,18 @@
 ﻿{
-  // 源文件目录名(例如:src/ 不能以/或者\开头,不能是绝对路径.结尾有/)
+  // 源文件目录名(例如:src/ 不能以/或者\开头,是相对路径,相对于项目根目录.结尾有/)
   "sourceDir": "src/",
   // 发布目录名(例如: 'dist/' 或 'd:/pubdir/' 相对路径或绝对路径,相对路径不以/或\开头,结尾有/)
   "distDir": "dist/",
-  // 发布前删除发布目录所有内容
+  // 发布整个项目时,发布前删除发布目录所有内容
   "emptyPublishDir": "true",
+  // 发布整个项目时,编译项目后发布bin文件夹
+  "buildBin": "false",
   // 允许发布的文件扩展名
   "allowExts": [ ".htm", ".html", ".cshtml", ".config", ".js", ".css", ".json", ".jpg", ".jpeg", ".gif", ".png", ".bmp", ".woff", ".woff2", ".ttf", ".svg", ".eot", ".otf" ],
   // 不允许发布的文件后缀名
-  "denyExts": [ "layout.cshtml", "part.cshtml", "part.js", "part.css" ]
+  "denySuffix": [ "layout.cshtml", "part.cshtml", "part.js", "part.css" ],
+  // 不允许发布的文件(例如:bundleconfig.json data/data.mdb 不能以/或者\开头,是带相对路径的文件名,相对于项目根目录)
+  "denyFiles": [],
+  // 不允许发布的目录(例如:src/ 不能以/或者\开头,是相对路径,相对于项目根目录.结尾有/)
+  "denyDirs": []
 }
