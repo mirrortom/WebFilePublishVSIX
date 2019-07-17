@@ -98,7 +98,7 @@ namespace WebFilePublishVSIX
         /// <summary>
         /// 使用RazorEngine编译cshtml页面.返回静态内容
         /// </summary>
-        /// <param name="temps">temps是一个以路径为键,cshtml文件内容为值的字典.它包含了一个要被编译的cshtml主文件以及其引用的0~多个母板页和片段页.</param>
+        /// <param name="temps">temps是一个以路径为键,cshtml文件内容为值的字典.它包含了一个要被编译的cshtml主文件以及其引用的1个母板页和0~多个片段页.</param>
         /// <param name="mainCshtmlKey">要编译的主cshtml模板文件在temps中的key</param>
         /// <returns></returns>
         private static string RazorRun(Dictionary<string, string> temps, string mainCshtmlKey)
