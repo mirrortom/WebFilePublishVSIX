@@ -35,7 +35,12 @@ namespace WebFilePublishVSIX
                 key_md5.Add(key, currMd5);
                 return true;
             }
-            return key_md5[key] != currMd5;
+            //
+            bool isChg= key_md5[key] != currMd5;
+            // 更新为此次hash值
+            key_md5[key] = currMd5;
+            //
+            return isChg;
         }
     }
 }
