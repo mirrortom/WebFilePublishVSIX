@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace WebFilePublishVSIX
+﻿namespace WebFilePublishVSIX
 {
-    class EnvVar
+    static class EnvVar
     {
         /// <summary>
         /// 发布配置文件名字.这个文件放在项目根目录下

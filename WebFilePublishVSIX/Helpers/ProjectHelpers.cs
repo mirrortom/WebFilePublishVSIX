@@ -1,11 +1,10 @@
-﻿using System;
+﻿using EnvDTE;
+using EnvDTE80;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
-using EnvDTE;
-using EnvDTE80;
 
 namespace WebFilePublishVSIX
 {

@@ -4,14 +4,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace WebFilePublishVSIX
 {
     /// <summary>
     /// 发布帮助类
     /// </summary>
-    class PublishHelpers
+    static class PublishHelpers
     {
         /// <summary>
         /// 用于获取VS相关信息.如VS的"输出"窗口
@@ -19,28 +18,10 @@ namespace WebFilePublishVSIX
         private static DTE2 _dte = PublishFilePackage._dte;
 
         /// <summary>
-        /// 发布配置文件对象(用于缓存)
+        /// 发布配置文件对象(用于公用)
         /// </summary>
         internal static PublishCfgM JsonCfg { get; private set; }
 
-        /// <summary>
-        /// 获取发布目录路径
-        /// </summary>
-        /// <returns></returns>
-        private static string OutDir()
-        {
-            // Path.IsPathRooted在" /a 和 c:/a 开头的情况下返回true."
-            return Path.IsPathRooted(JsonCfg.DistDir) ? JsonCfg.DistDir : Path.Combine(EnvVar.ProjectDir, JsonCfg.DistDir);
-        }
-        /// <summary>
-        /// 获取源代码目录路径
-        /// </summary>
-        /// <returns></returns>
-        private static string SrcDir()
-        {
-            // 文件从项目起始的相对路径,从src目录起,不含src.
-            return Path.Combine(EnvVar.ProjectDir, JsonCfg.SourceDir);
-        }
         #region 获取json配置文件
         /// <summary>
         /// 根据发布配置文件生成发布配置对象.配置文件publish.json放在项目根目录下.
@@ -71,6 +52,78 @@ namespace WebFilePublishVSIX
         }
         #endregion
 
+        #region 目录或路径计算
+
+        /// <summary>
+        /// 获取发布目录路径
+        /// </summary>
+        /// <returns></returns>
+        private static string OutDir()
+        {
+            // Path.IsPathRooted在" /a 和 c:/a 开头的情况下返回true."
+            return Path.IsPathRooted(JsonCfg.DistDir) ? JsonCfg.DistDir : Path.Combine(EnvVar.ProjectDir, JsonCfg.DistDir);
+        }
+        /// <summary>
+        /// 建立输出目录,如果不存在时.
+        /// 成功返回目录地址,失败返回出错信息("error"打头)
+        /// </summary>
+        /// <returns></returns>
+        private static string CreateOutDir()
+        {
+            string outDir = OutDir();
+            try
+            {
+                Directory.CreateDirectory(outDir);
+                return outDir;
+            }
+            catch (Exception e)
+            {
+                return $"error:发布目录建立失败!异常信息:{Environment.NewLine}{e.ToString()}";
+            }
+        }
+        /// <summary>
+        /// 获取源代码目录路径
+        /// </summary>
+        /// <returns></returns>
+        private static string SrcDir()
+        {
+            // 文件从项目起始的相对路径,从src目录起,不含src.
+            return Path.Combine(EnvVar.ProjectDir, JsonCfg.SourceDir);
+        }
+        /// <summary>
+        /// 在发布前删除发布目录的所有文件.
+        /// 此方法在发布整个项目时会用到
+        /// </summary>
+        internal static string DelPublishDir()
+        {
+            string outDir = Path.IsPathRooted(JsonCfg.DistDir) ? JsonCfg.DistDir : Path.Combine(EnvVar.ProjectDir, JsonCfg.DistDir);
+            return FileHelpers.EmptyDir(outDir);
+        }
+        /// <summary>
+        /// 根据要发布的源文件路径,计算出目标路径.如果路径上不存在目录,则生成之
+        /// </summary>
+        /// <param name="sPath">源文件路径</param>
+        /// <param name="targetDir">发布目录路径</param>
+        /// <returns></returns>
+        private static string TargetPath(string sPath, string targetDir)
+        {
+            // 源文件从项目根目录起始的相对路径
+            string relPath = sPath.Substring(EnvVar.ProjectDir.Length).Replace('\\', '/');
+
+            // 如果路径以 "JsonCfg.SourceDir"的值 开头,那么去掉这一级.发布目录,不要源代码根目录这一级.
+            if (relPath.StartsWith(JsonCfg.SourceDir))
+                relPath = relPath.Substring(JsonCfg.SourceDir.Length);
+
+            // 目标路径
+            string targetPath = Path.Combine(targetDir, relPath).Replace('\\', '/');
+
+            // 目录不存在则生成
+            string targetFileDir = Path.GetDirectoryName(targetPath);
+            Directory.CreateDirectory(targetFileDir);
+            return targetPath;
+        }
+        #endregion
+
         #region 发布文件
 
         /// <summary>
@@ -81,67 +134,128 @@ namespace WebFilePublishVSIX
         internal static string PublishFiles(List<string> filesPath)
         {
             // 建立发布目录
-            string outDir = OutDir();
-            try
-            {
-                Directory.CreateDirectory(outDir);
-            }
-            catch (Exception e)
-            {
-                return $"发布目录建立失败!异常信息:{Environment.NewLine}{e.ToString()}";
-            }
+            string outDir = CreateOutDir();
+            if (outDir.StartsWith("error"))
+                return outDir;
 
-            // 使用预定规则,清除出不需要发布处理的文件
+            // 使用预定规则,选出符合发布要求的文件
             List<string> files = FilterFiles(filesPath);
             if (files.Count == 0)
             {
                 return "没有找到符合发布要求的文件";
             }
 
-            // vs输出窗口显示信息
+            // vs输出窗口日志信息
             StringBuilder info = new StringBuilder();
-            info.AppendLine($"<开始发布>------ 共有 {files.Count} 个文件...");
+            info.AppendLine($"<总共发布文件 [{files.Count}] 个>-----------");
 
             // 按预定规则发布文件
             for (int i = 0; i < files.Count; i++)
             {
                 string itemPath = files[i];
-                // 文件从项目根目录起始的相对路径
-                string relPath = itemPath.Substring(EnvVar.ProjectDir.Length).Replace('\\', '/');
-                // 如果路径以 JsonCfg.SourceDir 开头,那么去掉这一段.发布目录,不要源代码根目录这一层.
-                if (relPath.StartsWith(JsonCfg.SourceDir))
-                    relPath = relPath.Substring(JsonCfg.SourceDir.Length);
-                // 目标路径
-                string targetPath = Path.Combine(outDir, relPath).Replace('\\', '/');
 
-                // 目标路径目录如果不存在,则建立之.
-                string targetFileDir = Path.GetDirectoryName(targetPath);
-                Directory.CreateDirectory(targetFileDir);
+                // 计算并生成目标路径目录
+                string targetPath = TargetPath(itemPath, outDir);
 
-                // 是cshtml文件,则编译后发布
-                if (targetPath.EndsWith(".cshtml"))
-                {
-                    Tuple<bool, string> result = RazorCshtml.BuildCshtml(itemPath);
-                    if (result.Item1 == false)
-                    {
-                        info.AppendLine($"{i + 1} 发布失败 {targetPath} {Environment.NewLine}({result.Item2})");
-                        continue;
-                    }
-                    // 改成html扩展名,并生成文件
-                    targetPath = $"{targetPath.Substring(0, targetPath.Length - "CSHTML".Length)}html";
-                    File.WriteAllText(targetPath, result.Item2);
-                    info.AppendLine($"{i + 1} 已发布 {targetPath}");
-                    continue;
-                }
-                // 是一般文件,原样复制发布
-                File.Copy(itemPath, targetPath, true);
-                info.AppendLine($"{i + 1} 已发布 {targetPath}");
+                // 发布文件
+                string resFile = OutPutFile(itemPath, targetPath);
+                info.AppendLine($"{i + 1}. {targetPath} {resFile}");
             }
-            info.AppendLine("------<发布结束>");
+            info.AppendLine("______________<发布结束>");
             OutPutMsg(info.ToString());
             return null;
         }
+        /// <summary>
+        /// 输出文件,如果是js,css,则判断是否需要压缩输出,cshtml文件则编译,其它文件原样输出
+        /// </summary>
+        /// <param name="sPath">原路径</param>
+        /// <param name="tPath">目标路径</param>
+        /// <returns></returns>
+        private static string OutPutFile(string sPath, string tPath)
+        {
+            string extName = Path.GetExtension(sPath).ToLower();
+            //
+            if (extName == ".cshtml")
+            {
+                return OutPutCshtml(sPath, tPath);
+            }
 
+            string msg = "发布成功";
+            // js
+            if (extName == ".js" && (JsonCfg.MiniOutput == 7 || JsonCfg.MiniOutput == 4))
+            {
+                string js = Minifier.Js(File.ReadAllText(sPath));
+                if (js == null)
+                {
+                    File.Copy(sPath, tPath, true);
+                    return "发布成功,但压缩js失败,请检查js语法错误";
+                }
+                File.WriteAllText(tPath, js);
+                return msg;
+            }
+            // css
+            if (extName == ".css" && (JsonCfg.MiniOutput == 7 || JsonCfg.MiniOutput == 2))
+            {
+                string css = Minifier.Css(File.ReadAllText(sPath));
+                if (css == null)
+                {
+                    File.Copy(sPath, tPath, true);
+                    return "发布成功,但压缩js失败,请检查js语法错误";
+                }
+                File.WriteAllText(tPath, css);
+                return msg;
+            }
+            // html
+            if (extName == ".html" && (JsonCfg.MiniOutput == 7 || JsonCfg.MiniOutput == 1))
+            {
+                string html = Minifier.Html(File.ReadAllText(sPath));
+                // 如果压缩不成功,直接输出原html
+                if (html == null)
+                {
+                    File.Copy(sPath, tPath, true);
+                    return "发布成功,但压缩html失败,请检查html语法错误";
+                }
+                File.WriteAllText(tPath, html);
+                return msg;
+            }
+            // 其它文件,直接输出
+            File.Copy(sPath, tPath, true);
+            return msg;
+        }
+        /// <summary>
+        /// 编译后输出cshtml文件,返回出错信息
+        /// </summary>
+        /// <param name="sPath">原路径</param>
+        /// <param name="tPath">目标路径</param>
+        /// <returns></returns>
+        private static string OutPutCshtml(string sPath, string tPath)
+        {
+            Tuple<bool, string> result = RazorCshtml.BuildCshtml(sPath);
+            if (result.Item1 == false)
+            {
+                // 编译失败时
+                return $"发布失败{Environment.NewLine}{result.Item2}";
+            }
+
+            // 改成html扩展名
+            string targetPath = $"{tPath.Substring(0, tPath.Length - "CSHTML".Length)}html";
+
+            // 选择压缩输出时
+            if (JsonCfg.MiniOutput == 7 || JsonCfg.MiniOutput == 1)
+            {
+                string html = Minifier.Html(result.Item2);
+                // 如果压缩不成功,直接输出原html
+                if (html == null)
+                {
+                    File.WriteAllText(targetPath, result.Item2);
+                    return "发布成功,但压缩html失败,请检查html语法错误";
+                }
+                File.WriteAllText(targetPath, html);
+                return "发布成功";
+            }
+            File.WriteAllText(targetPath, result.Item2);
+            return "发布成功";
+        }
         /// <summary>
         /// 使用预定规则将不需要发布处理的文件清除,返回新文件列表.
         /// </summary>
@@ -224,7 +338,7 @@ namespace WebFilePublishVSIX
 
                 // vs输出窗口显示信息
                 StringBuilder info = new StringBuilder();
-                info.AppendLine($"<开始发布bin目录>------ 共有 {binFiles.Length} 个文件...");
+                info.AppendLine($"<发布bin目录,共有 {binFiles.Length} 个文件>>>>>>>>>>>>>>>>>");
                 info.AppendLine($"从: {fromBinDir} 到: {targetDir}");
 
                 for (int i = 0; i < binFiles.Length; i++)
@@ -238,27 +352,16 @@ namespace WebFilePublishVSIX
                     File.Copy(itemPath, targetPath, true);
                     info.AppendLine($"{i + 1} 已发布 {targetPath}");
                 }
-                info.AppendLine($"------<bin目录发布结束>");
+                info.AppendLine($"<<<<<<<<<<bin目录发布结束>");
                 //
                 OutPutMsg(info.ToString());
                 return null;
             }
             catch (Exception e)
             {
-                return $"bin目录发布时发生异常:{Environment.NewLine}{e.ToString()}{Environment.NewLine}";
+                return $"error:bin目录发布时发生异常:{Environment.NewLine}{e.ToString()}{Environment.NewLine}";
             }
         }
-
-        /// <summary>
-        /// 在发布前删除发布目录的所有文件.
-        /// 此方法在发布整个项目时会用到
-        /// </summary>
-        internal static string DelPublishDir()
-        {
-            string outDir = Path.IsPathRooted(JsonCfg.DistDir) ? JsonCfg.DistDir : Path.Combine(EnvVar.ProjectDir, JsonCfg.DistDir);
-            return FileHelpers.EmptyDir(outDir);
-        }
-
 
         #endregion
 

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 
 namespace WebFilePublishVSIX
 {
@@ -34,6 +29,10 @@ namespace WebFilePublishVSIX
         /// 发布整个项目时,编译项目后发布bin文件夹
         /// </summary>
         public bool BuildBin = false;
+        /// <summary>
+        /// 对js,css,html压缩输出(0=不压缩,7=都压缩(默认). 1=html,2=css,4=js)
+        /// </summary>
+        public int MiniOutput = 7;
         /// <summary>
         /// 不允许发布的文件(例如:bundleconfig.json data/data.mdb 
         /// 不能以/或者\开头,是带相对路径的文件名,相对于项目根目录) 

@@ -58,6 +58,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="BuildCshtml\RazorCshtml.cs" />
+    <Compile Include="Helpers\Minifier.cs" />
     <Compile Include="Helpers\PublishHelpers.cs" />
     <Compile Include="Helpers\RazorCacheHelpers.cs" />
     <Compile Include="Helpers\FileHelpers.cs" />
@@ -185,6 +186,9 @@
       <HintPath>..\packages\Microsoft.Win32.Primitives.4.3.0\lib\net46\Microsoft.Win32.Primitives.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL" />
+    <Reference Include="NUglify, Version=1.5.13.0, Culture=neutral, PublicKeyToken=15bc7810aec21b5e, processorArchitecture=MSIL">
+      <HintPath>..\packages\NUglify.1.5.13\lib\net40\NUglify.dll</HintPath>
+    </Reference>
     <Reference Include="RazorEngine, Version=4.5.0.0, Culture=neutral, PublicKeyToken=9ee697374c7e744a, processorArchitecture=MSIL">
       <HintPath>..\packages\RazorEngine.4.5.0-rc1\lib\net45\RazorEngine.dll</HintPath>
     </Reference>

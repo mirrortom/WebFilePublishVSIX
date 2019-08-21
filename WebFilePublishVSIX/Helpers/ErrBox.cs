@@ -1,15 +1,11 @@
 ﻿using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace WebFilePublishVSIX
 {
-    class ErrBox
+    static class ErrBox
     {
         public static void Info(string msg, string title = "插件-信息提示")
         {
