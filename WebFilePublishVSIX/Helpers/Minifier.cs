@@ -11,6 +11,13 @@ namespace WebFilePublishVSIX
         /// <returns></returns>
         internal static string Html(string source)
         {
+            var htmlsetting = new NUglify.Html.HtmlSettings
+            {
+                // 此项如果不设为false,压缩后将丢失</body></html>两标签
+                RemoveOptionalTags = false,
+                // 标签上的属性值为空时不要删除,例如<input value="">
+                RemoveEmptyAttributes = false
+            };
             var result = Uglify.Html(source);
             return result.Code;
         }
