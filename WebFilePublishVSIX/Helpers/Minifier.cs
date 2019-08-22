@@ -18,7 +18,7 @@ namespace WebFilePublishVSIX
                 // 标签上的属性值为空时不要删除,例如<input value="">
                 RemoveEmptyAttributes = false
             };
-            var result = Uglify.Html(source);
+            var result = Uglify.Html(source, htmlsetting);
             return result.Code;
         }
         /// <summary>
