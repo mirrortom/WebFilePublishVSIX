@@ -182,7 +182,7 @@ namespace WebFilePublishVSIX
 
             string msg = "发布成功";
             // js
-            if (extName == ".js" && (JsonCfg.MiniOutput == 7 || JsonCfg.MiniOutput == 4))
+            if (extName == ".js" && new int[] { 4, 5, 6, 7 }.Contains(JsonCfg.MiniOutput))
             {
                 string js = Minifier.Js(File.ReadAllText(sPath));
                 if (js == null)
@@ -194,7 +194,7 @@ namespace WebFilePublishVSIX
                 return msg;
             }
             // css
-            if (extName == ".css" && (JsonCfg.MiniOutput == 7 || JsonCfg.MiniOutput == 2))
+            if (extName == ".css" && new int[] { 2, 3, 6, 7 }.Contains(JsonCfg.MiniOutput))
             {
                 string css = Minifier.Css(File.ReadAllText(sPath));
                 if (css == null)
@@ -206,7 +206,7 @@ namespace WebFilePublishVSIX
                 return msg;
             }
             // html
-            if (extName == ".html" && (JsonCfg.MiniOutput == 7 || JsonCfg.MiniOutput == 1))
+            if (extName == ".html" && new int[] { 1, 3, 5, 7 }.Contains(JsonCfg.MiniOutput))
             {
                 string html = Minifier.Html(File.ReadAllText(sPath));
                 // 如果压缩不成功,直接输出原html
@@ -241,7 +241,7 @@ namespace WebFilePublishVSIX
             string targetPath = $"{tPath.Substring(0, tPath.Length - "CSHTML".Length)}html";
 
             // 选择压缩输出时
-            if (JsonCfg.MiniOutput == 7 || JsonCfg.MiniOutput == 1)
+            if (new int[] { 1, 3, 5, 7 }.Contains(JsonCfg.MiniOutput))
             {
                 string html = Minifier.Html(result.Item2);
                 // 如果压缩不成功,直接输出原html

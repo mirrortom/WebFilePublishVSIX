@@ -162,7 +162,7 @@ namespace WebFilePublishVSIX
             {
                 // 匹配母板和片段页正则
                 Regex layoutRege = new Regex("Layout\\s*=\\s*@?\"(\\S+)\";");
-                Regex partialRege = new Regex("@Include\\(@?\"(\\S+)\"\\)");
+                Regex partialRege = new Regex("([^@]|^)@Include\\(@?\"(\\S+)\"\\)");
 
                 // 匹配layout(只匹配第1个Layout)
                 var layoutMatch = layoutRege.Match(cshtmlCont);
@@ -180,7 +180,7 @@ namespace WebFilePublishVSIX
                 // 添加片段模板,如果找到
                 foreach (Match mpartpath in partialMatches)
                 {
-                    string partialPath = mpartpath.Groups[1].Value.Trim();
+                    string partialPath = mpartpath.Groups[2].Value.Trim();
                     if (!string.IsNullOrWhiteSpace(partialPath))
                         tempDict.Add(partialPath, File.ReadAllText(FullPath(partialPath)));
                 }
