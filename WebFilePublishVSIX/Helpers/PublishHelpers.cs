@@ -230,7 +230,9 @@ namespace WebFilePublishVSIX
         /// <returns></returns>
         private static string OutPutCshtml(string sPath, string tPath)
         {
-            Tuple<bool, string> result = RazorCshtml.BuildCshtml(sPath);
+            Tuple<bool, string> result = JsonCfg.GlobleVar == null ?
+                RazorCshtml.BuildCshtml(sPath) :
+                RazorCshtml.BuildCshtml(sPath, JsonCfg.GlobleVar);
             if (result.Item1 == false)
             {
                 // 编译失败时

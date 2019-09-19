@@ -16,5 +16,7 @@
   // 不允许发布的文件(例如:bundleconfig.json data/data.mdb 不能以/或者\开头,是带相对路径的文件名,相对于项目根目录)
   "denyFiles": [],
   // 不允许发布的目录(例如:src/ 不能以/或者\开头,是相对路径,相对于项目根目录.结尾有/)
-  "denyDirs": []
+  "denyDirs": [],
+  // 公共变量,一个json键值对例如{k:v,...},将作为匿名对象作为Model传给cshtml文件,调用方法@Model.xxx
+  "GlobleVar": null
 }

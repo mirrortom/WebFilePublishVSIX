@@ -80,13 +80,13 @@ namespace WebFilePublishVSIX
         /// </summary>
         /// <param name="cshtmlPath">cshtml文件全路径</param>
         /// <returns></returns>
-        public static Tuple<bool, string> BuildCshtml(string cshtmlPath)
+        public static Tuple<bool, string> BuildCshtml(string cshtmlPath, dynamic model = null)
         {
             try
             {
                 Dictionary<string, string> allTemps = FindTemps(cshtmlPath);
                 //
-                return new Tuple<bool, string>(true, RazorRun(allTemps, cshtmlPath));
+                return new Tuple<bool, string>(true, RazorRun(allTemps, cshtmlPath, model));
             }
             catch (Exception e)
             {
@@ -100,7 +100,7 @@ namespace WebFilePublishVSIX
         /// <param name="temps">temps是一个以路径为键,cshtml文件内容为值的字典.它包含了一个要被编译的cshtml主文件以及其引用的1个母板页和0~多个片段页.</param>
         /// <param name="mainCshtmlKey">要编译的主cshtml模板文件在temps中的key</param>
         /// <returns></returns>
-        private static string RazorRun(Dictionary<string, string> temps, string mainCshtmlKey)
+        private static string RazorRun(Dictionary<string, string> temps, string mainCshtmlKey, object model = null)
         {
             // 添加要编译的cshtml文件,包括其引用的母板页和片段页
             foreach (string key in temps.Keys)
@@ -122,7 +122,9 @@ namespace WebFilePublishVSIX
                 serveice.Compile(k);
             }
             // MainCshtmlKey是cshtml主页面,生成html时,必须以主cshtml模板的名.
-            return serveice.Run(serveice.GetKey(mainCshtmlKey));
+            if (model == null)
+                return serveice.Run(serveice.GetKey(mainCshtmlKey));
+            return serveice.Run(serveice.GetKey(mainCshtmlKey), null, model);
         }
 
         /// <summary>

@@ -43,7 +43,7 @@ namespace WebFilePublishVSIX
         /// 不允许发布的目录(例如:src/ 不能以/或者\开头,是相对路径,相对于项目根目录.结尾有/)
         /// </summary>
         public string[] DenyDirs;
-
+        public dynamic GlobleVar;
         /// <summary>
         /// 将空值或未设定的成员设为默认值
         /// </summary>
