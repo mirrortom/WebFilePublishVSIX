@@ -105,7 +105,7 @@
     <KeyBinding guid="guidPublishFilePackageCmdSetFILE" id="PublishFileId" mod1="ALT" mod2="ALT" key1="1" key2="1" editor="guidVSStd97" />
     <KeyBinding guid="guidPublishFilePackageCmdSetDIR" id="PublishDirId" mod1="ALT" mod2="ALT" key1="2" key2="2" editor="guidVSStd97" />
     <KeyBinding guid="guidPublishFilePackageCmdSetWEB" id="PublishWebId" mod1="ALT" mod2="ALT" key1="3" key2="3" editor="guidVSStd97" />
-    <KeyBinding guid="guidPublishFilePackageCmdSetActiveFile" id="PublishActiveFileId" mod1="ALT" mod2="ALT" key1="A" key2="A" editor="guidVSStd97" />
+    <KeyBinding guid="guidPublishFilePackageCmdSetActiveFile" id="PublishActiveFileId" mod1="ALT" mod2="ALT" key1="Q" key2="Q" editor="guidVSStd97" />
   </KeyBindings>
 
   <Symbols>
