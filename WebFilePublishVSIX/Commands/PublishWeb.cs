@@ -104,7 +104,7 @@ namespace WebFilePublishVSIX
             }
 
             // 发布前删除发布目录下所有文件(根据配置文件的设置而执行)
-            string emptyOutDir = PublishHelpers.DelPublishDir();
+            string emptyOutDir = PublishHelpers.EmptyPuslishDir();
             if (emptyOutDir != null)
             {
                 ErrBox.Info(this.package, emptyOutDir); return;
@@ -120,7 +120,7 @@ namespace WebFilePublishVSIX
                 string buildCfg = activeProj.ConfigurationManager.ActiveConfiguration.ConfigurationName;
                 PublishFilePackage._dte.Solution.SolutionBuild.BuildProject(buildCfg, activeProj.UniqueName, true);
                 // 编译后DLL文件所在目录.是一个相对于项目根目录起始的目录
-                string outBinDir = activeProj.ConfigurationManager.ActiveConfiguration.Properties.Item("OutputPath").Value.ToString();
+                string outBinDir = activeProj.ConfigurationManager.ActiveConfiguration.Properties.Item("OutputPath").Value.ToString().Replace('\\', '/').Trim('/');
 
                 // 复制dll文件到目标目录
                 string resBin = PublishHelpers.PublishBin(outBinDir);

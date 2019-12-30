@@ -25,8 +25,8 @@ namespace WebFilePublishVSIX
         #region 获取json配置文件
         /// <summary>
         /// 根据发布配置文件生成发布配置对象.配置文件publish.json放在项目根目录下.
-        /// 如果没有配置文件,将使用默认配置.
-        /// 如果指定的配置文件不合法,返回出错提示.
+        /// 如果没有配置文件,将使用默认配置,并在项目根目录下生成publish.json配置文件
+        /// 如果指定的配置文件不是有效的json,返回出错提示.
         /// 成功返回null
         /// </summary>
         /// <returns></returns>
@@ -34,20 +34,26 @@ namespace WebFilePublishVSIX
         {
             try
             {
-                string jsonPath = Path.Combine(EnvVar.ProjectDir, EnvVar.PublishCfgName);
+                string jsonPath = $"{EnvVar.ProjectDir}/{EnvVar.PublishCfgName}";
                 if (!File.Exists(jsonPath))
                 {
+                    // 没有配置文件时,在项目根目录下生成publish.json配置文件
                     JsonCfg = new PublishCfgM();
-                    JsonCfg.InitDef();
+                    JsonCfg.CheckVal();
+                    using (StreamWriter sw = new StreamWriter(jsonPath))
+                    {
+                        sw.Write(JsonCfg.CreateJson());
+                    }
                     return null;
                 }
+                // 已有时
                 JsonCfg = Newtonsoft.Json.JsonConvert.DeserializeObject<PublishCfgM>(File.ReadAllText(jsonPath));
-                JsonCfg.InitDef();
+                JsonCfg.CheckVal();
                 return null;
             }
             catch (Exception e)
             {
-                return $"发布配置文件生成失败!异常信息:{Environment.NewLine}{e.ToString()}";
+                return $"publish.json配置文件生成失败!异常信息:{Environment.NewLine}{e.ToString()}";
             }
         }
         #endregion
@@ -55,26 +61,18 @@ namespace WebFilePublishVSIX
         #region 目录或路径计算
 
         /// <summary>
-        /// 获取发布目录路径
-        /// </summary>
-        /// <returns></returns>
-        private static string OutDir()
-        {
-            // Path.IsPathRooted在" /a 和 c:/a 开头的情况下返回true."
-            return Path.IsPathRooted(JsonCfg.DistDir) ? JsonCfg.DistDir : Path.Combine(EnvVar.ProjectDir, JsonCfg.DistDir);
-        }
-        /// <summary>
         /// 建立输出目录,如果不存在时.
-        /// 成功返回目录地址,失败返回出错信息("error"打头)
+        /// 成功返回null,失败返回出错信息("error"打头)
         /// </summary>
         /// <returns></returns>
         private static string CreateOutDir()
         {
-            string outDir = OutDir();
+            if (!Path.IsPathRooted(JsonCfg.DistDir))
+                JsonCfg.DistDir = $"{EnvVar.ProjectDir}/{JsonCfg.DistDir}";
             try
             {
-                Directory.CreateDirectory(outDir);
-                return outDir;
+                Directory.CreateDirectory(JsonCfg.DistDir);
+                return null;
             }
             catch (Exception e)
             {
@@ -85,19 +83,18 @@ namespace WebFilePublishVSIX
         /// 获取源代码目录路径
         /// </summary>
         /// <returns></returns>
-        private static string SrcDir()
-        {
-            // 文件从项目起始的相对路径,从src目录起,不含src.
-            return Path.Combine(EnvVar.ProjectDir, JsonCfg.SourceDir);
-        }
+        //private static string SrcDir()
+        //{
+        //    // 文件从项目起始的相对路径,从src目录起,不含src.
+        //    return Path.Combine(EnvVar.ProjectDir, JsonCfg.SourceDir);
+        //}
         /// <summary>
-        /// 在发布前删除发布目录的所有文件.
-        /// 此方法在发布整个项目时会用到
+        /// 在发布前删除发布目录内的所有文件.
+        /// 此方法在只在发布整个项目时会用到
         /// </summary>
-        internal static string DelPublishDir()
+        internal static string EmptyPuslishDir()
         {
-            string outDir = Path.IsPathRooted(JsonCfg.DistDir) ? JsonCfg.DistDir : Path.Combine(EnvVar.ProjectDir, JsonCfg.DistDir);
-            return FileHelpers.EmptyDir(outDir);
+            return FileHelpers.EmptyDir(JsonCfg.DistDir);
         }
         /// <summary>
         /// 根据要发布的源文件路径,计算出目标路径.如果路径上不存在目录,则生成之
@@ -108,18 +105,24 @@ namespace WebFilePublishVSIX
         private static string TargetPath(string sPath, string targetDir)
         {
             // 源文件从项目根目录起始的相对路径
-            string relPath = sPath.Substring(EnvVar.ProjectDir.Length).Replace('\\', '/');
+            string relPath = sPath.Substring(EnvVar.ProjectDir.Length + 1);
 
-            // 如果路径以 "JsonCfg.SourceDir"的值 开头,那么去掉这一级.发布目录,不要源代码根目录这一级.
+            // 如果路径以 "JsonCfg.SourceDir"的值 开头,那么去掉这一级.发布目录不要源代码根目录这一级.
             if (relPath.StartsWith(JsonCfg.SourceDir))
-                relPath = relPath.Substring(JsonCfg.SourceDir.Length);
+                relPath = relPath.Substring(JsonCfg.SourceDir.Length + 1);
 
             // 目标路径
-            string targetPath = Path.Combine(targetDir, relPath).Replace('\\', '/');
+            string targetPath = $"{targetDir}/{relPath}";
 
             // 目录不存在则生成
-            string targetFileDir = Path.GetDirectoryName(targetPath);
-            Directory.CreateDirectory(targetFileDir);
+            //try
+            //{
+            //}
+            //catch (Exception e)
+            //{
+            //return $"error:目标路径生成失败,异常信息:{e.Message}";
+            //}
+            Directory.CreateDirectory(Path.GetDirectoryName(targetPath));
             return targetPath;
         }
         #endregion
@@ -135,7 +138,7 @@ namespace WebFilePublishVSIX
         {
             // 建立发布目录
             string outDir = CreateOutDir();
-            if (outDir.StartsWith("error"))
+            if (outDir != null)
                 return outDir;
 
             // 使用预定规则,选出符合发布要求的文件
@@ -147,7 +150,7 @@ namespace WebFilePublishVSIX
 
             // vs输出窗口日志信息
             StringBuilder info = new StringBuilder();
-            info.AppendLine($"<总共发布文件 [{files.Count}] 个>-----------");
+            info.AppendLine($"<开始发布文件:>>>>>>>>>>>>>>>>>>>>>>>>>");
 
             // 按预定规则发布文件
             for (int i = 0; i < files.Count; i++)
@@ -155,13 +158,13 @@ namespace WebFilePublishVSIX
                 string itemPath = files[i];
 
                 // 计算并生成目标路径目录
-                string targetPath = TargetPath(itemPath, outDir);
+                string targetPath = TargetPath(itemPath, JsonCfg.DistDir);
 
                 // 发布文件
                 string resFile = OutPutFile(itemPath, targetPath);
                 info.AppendLine($"{i + 1}. {targetPath} {resFile}");
             }
-            info.AppendLine("______________<发布结束>");
+            info.AppendLine($"<<<<<<<<<<<<<<<<<发布结束.总共[ {files.Count} ]个>");
             OutPutMsg(info.ToString());
             return null;
         }
@@ -266,8 +269,8 @@ namespace WebFilePublishVSIX
         private static List<string> FilterFiles(List<string> filesPath)
         {
             List<string> files = new List<string>();
-            string outDirLower = OutDir().Replace('\\', '/').ToLower();
-            string jsonPathLower = Path.Combine(EnvVar.ProjectDir, EnvVar.PublishCfgName).Replace('\\', '/').ToLower();
+            string outDirLower = JsonCfg.DistDir.ToLower();
+            string jsonCfgPathLower = $"{EnvVar.ProjectDir}/{EnvVar.PublishCfgName})".ToLower();
             // 循环所有文件,筛选
             foreach (var itemPath in filesPath)
             {
@@ -275,7 +278,7 @@ namespace WebFilePublishVSIX
                 string filePathLower = filePath.ToLower();
 
                 // 不发布配置文件
-                if (filePathLower == jsonPathLower)
+                if (filePathLower == jsonCfgPathLower)
                     continue;
 
                 // 可能是个目录,要排除
@@ -299,9 +302,10 @@ namespace WebFilePublishVSIX
                 if (JsonCfg.DenyDirs != null)
                 {
                     if (JsonCfg.DenyDirs.FirstOrDefault
-                        (o => filePathLower.StartsWith(o.ToLower())) != null)
+                        (o => Path.GetDirectoryName(filePathLower).StartsWith(o.ToLower())) != null)
                         continue;
                 }
+
                 // 排除不允许发布的文件,比较文件全路径名
                 if (JsonCfg.DenyFiles != null)
                 {
@@ -309,6 +313,7 @@ namespace WebFilePublishVSIX
                         (o => filePathLower == o.ToLower()) != null)
                         continue;
                 }
+
                 // 如果文件位于发布目录下要排除掉.例如发布目录是默认值dist时,
                 // 是位于项目根目录下的dist文件夹,如果包含进项目,就会发生此情况
                 if (filePathLower.StartsWith(outDirLower))
@@ -321,7 +326,7 @@ namespace WebFilePublishVSIX
 
         /// <summary>
         /// 发布BIN目录.(在编译项目之后调用)
-        /// sourcebinDir参数为项目根目录起始的相对目录路径 如 bin/debug/
+        /// sourcebinDir参数为项目根目录起始的相对目录路径 如 bin/debug(正斜杠,后面无/)
         /// </summary>
         /// <param name="sourcebinDir"></param>
         internal static string PublishBin(string sourcebinDir)
@@ -329,18 +334,17 @@ namespace WebFilePublishVSIX
             try
             {
                 // 源bin目录全路径
-                string fromBinDir = Path.Combine(EnvVar.ProjectDir, sourcebinDir).Replace('\\', '/');
+                string fromBinDir = $"{EnvVar.ProjectDir}/{sourcebinDir}";
 
                 // 目标bin目录
-                string outDir = OutDir();
-                string targetDir = Path.Combine(outDir, "bin/").Replace('\\', '/');
+                string targetDir = $"{JsonCfg.DistDir}/bin/";
 
                 // 源bin目录下所有文件
                 string[] binFiles = Directory.GetFiles(fromBinDir, "*", SearchOption.AllDirectories);
 
                 // vs输出窗口显示信息
                 StringBuilder info = new StringBuilder();
-                info.AppendLine($"<发布bin目录,共有 {binFiles.Length} 个文件>>>>>>>>>>>>>>>>>");
+                info.AppendLine($"<开始发布bin目录:>>>>>>>>>>>>>>>>>>>>>>>>>");
                 info.AppendLine($"从: {fromBinDir} 到: {targetDir}");
 
                 for (int i = 0; i < binFiles.Length; i++)
@@ -354,7 +358,7 @@ namespace WebFilePublishVSIX
                     File.Copy(itemPath, targetPath, true);
                     info.AppendLine($"{i + 1} 已发布 {targetPath}");
                 }
-                info.AppendLine($"<<<<<<<<<<bin目录发布结束>");
+                info.AppendLine($"<<<<<<<<<<<<<<<bin目录文件发布结束.总共[ {binFiles.Length} ]个>");
                 //
                 OutPutMsg(info.ToString());
                 return null;

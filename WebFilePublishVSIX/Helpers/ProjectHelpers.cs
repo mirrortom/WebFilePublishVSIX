@@ -10,7 +10,7 @@ namespace WebFilePublishVSIX
 {
     public static class ProjectHelpers
     {
-        private static DTE2 _dte = PublishFilePackage._dte; 
+        private static DTE2 _dte = PublishFilePackage._dte;
 
         public static Document GetActiveDoc()
         {
@@ -30,7 +30,7 @@ namespace WebFilePublishVSIX
                 foreach (ProjectItem item in items)
                 {
                     files.Add(item.Properties.Item("FullPath").Value.ToString());
-                    if(item.ProjectItems.Count>0)
+                    if (item.ProjectItems.Count > 0)
                     {
                         getItems(item.ProjectItems);
                     }
@@ -72,7 +72,11 @@ namespace WebFilePublishVSIX
                     yield return item.Properties.Item("FullPath").Value.ToString();
             }
         }
-
+        /// <summary>
+        /// 获取项目根目录路径.返回的目录路径最后不带/或\,且都是/(正斜杠)
+        /// </summary>
+        /// <param name="project"></param>
+        /// <returns></returns>
         public static string GetRootFolder(this Project project)
         {
             if (project == null || string.IsNullOrEmpty(project.FullName))
@@ -99,13 +103,13 @@ namespace WebFilePublishVSIX
             }
 
             if (string.IsNullOrEmpty(fullPath))
-                return File.Exists(project.FullName) ? Path.GetDirectoryName(project.FullName) : null;
+                return File.Exists(project.FullName) ? Path.GetDirectoryName(project.FullName).Replace('\\', '/') : null;
 
             if (Directory.Exists(fullPath))
-                return fullPath;
+                return fullPath.Replace('\\', '/').TrimEnd('/');
 
             if (File.Exists(fullPath))
-                return Path.GetDirectoryName(fullPath);
+                return Path.GetDirectoryName(fullPath).Replace('\\', '/');
 
             return null;
         }
