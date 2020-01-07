@@ -24,7 +24,7 @@ namespace WebFilePublishVSIX
         /// <summary>
         /// 发布整个项目时,发布前删除发布目录所有内容
         /// </summary>
-        public bool EmptyPublishDir = true;
+        public bool EmptyPublishDir = false;
         /// <summary>
         /// 发布整个项目时,编译项目后发布bin文件夹
         /// </summary>
