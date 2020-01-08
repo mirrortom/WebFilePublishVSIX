@@ -270,7 +270,7 @@ namespace WebFilePublishVSIX
         {
             List<string> files = new List<string>();
             string outDirLower = JsonCfg.DistDir.ToLower();
-            string jsonCfgPathLower = $"{EnvVar.ProjectDir}/{EnvVar.PublishCfgName})".ToLower();
+            string jsonCfgPathLower = $"{EnvVar.ProjectDir}/{EnvVar.PublishCfgName}".ToLower();
             // 循环所有文件,筛选
             foreach (var itemPath in filesPath)
             {
