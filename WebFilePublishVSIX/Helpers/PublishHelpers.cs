@@ -302,7 +302,7 @@ namespace WebFilePublishVSIX
                 if (JsonCfg.DenyDirs != null)
                 {
                     if (JsonCfg.DenyDirs.FirstOrDefault
-                        (o => Path.GetDirectoryName(filePathLower).StartsWith(o.ToLower())) != null)
+                        (o => filePathLower.StartsWith(o.ToLower())) != null)
                         continue;
                 }
 
