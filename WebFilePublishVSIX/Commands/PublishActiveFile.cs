@@ -3,6 +3,8 @@ using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+
+using System.Text;
 using Task = System.Threading.Tasks.Task;
 
 namespace WebFilePublishVSIX
@@ -86,6 +88,7 @@ namespace WebFilePublishVSIX
         /// <param name="e">Event args.</param>
         private void Execute(object sender, EventArgs e)
         {
+
             // 发布当前处于活动状态的1个文件 如果没有活动文件,不动作
             var activedoc = ProjectHelpers.GetActiveDoc();
             if (activedoc == null)
@@ -102,7 +105,7 @@ namespace WebFilePublishVSIX
             // 建立发布配置对象
             EnvVar.ProjectDir = activeProj.GetRootFolder();
             string res = PublishHelpers.CreatePublishCfg();
-            if (res!=null)
+            if (res != null)
             {
                 ErrBox.Info(this.package, res); return;
             }
@@ -113,7 +116,7 @@ namespace WebFilePublishVSIX
                 activedoc.FullName
             };
             // 发布处理
-            string resinfo=PublishHelpers.PublishFiles(srcfiles);
+            string resinfo = PublishHelpers.PublishFiles(srcfiles);
             if (resinfo != null)
             {
                 ErrBox.Info(this.package, resinfo);

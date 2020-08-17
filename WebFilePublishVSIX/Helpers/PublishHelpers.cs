@@ -209,7 +209,7 @@ namespace WebFilePublishVSIX
                 return msg;
             }
             // html
-            if (extName == ".html" && new int[] { 1, 3, 5, 7 }.Contains(JsonCfg.MiniOutput))
+            if (extName.IndexOf(".html") >= 0 && new int[] { 1, 3, 5, 7 }.Contains(JsonCfg.MiniOutput))
             {
                 string html = Minifier.Html(File.ReadAllText(sPath));
                 // 如果压缩不成功,直接输出原html
