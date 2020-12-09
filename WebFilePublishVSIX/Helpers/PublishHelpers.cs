@@ -94,7 +94,11 @@ namespace WebFilePublishVSIX
         /// </summary>
         internal static string EmptyPuslishDir()
         {
-            return FileHelpers.EmptyDir(JsonCfg.DistDir);
+            if (JsonCfg.EmptyPublishDir == true)
+            {
+                return FileHelpers.EmptyDir(JsonCfg.DistDir);
+            }
+            return null;
         }
         /// <summary>
         /// 根据要发布的源文件路径,计算出目标路径.如果路径上不存在目录,则生成之
