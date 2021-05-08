@@ -53,7 +53,7 @@ namespace WebFilePublishVSIX
             }
             catch (Exception e)
             {
-                return $"publish.json配置文件生成失败!异常信息:{Environment.NewLine}{e.ToString()}";
+                return $"publish.json配置文件生成失败!异常信息:{Environment.NewLine}{e}";
             }
         }
         #endregion
@@ -76,7 +76,7 @@ namespace WebFilePublishVSIX
             }
             catch (Exception e)
             {
-                return $"error:发布目录建立失败!异常信息:{Environment.NewLine}{e.ToString()}";
+                return $"error:发布目录建立失败!异常信息:{Environment.NewLine}{e}";
             }
         }
         /// <summary>
@@ -103,17 +103,22 @@ namespace WebFilePublishVSIX
         /// <summary>
         /// 根据要发布的源文件路径,计算出目标路径.如果路径上不存在目录,则生成之
         /// </summary>
-        /// <param name="sPath">源文件路径</param>
+        /// <param name="srcPath">源文件路径</param>
         /// <param name="targetDir">发布目录路径</param>
         /// <returns></returns>
-        private static string TargetPath(string sPath, string targetDir)
+        private static string TargetPath(string srcPath, string targetDir)
         {
-            // 源文件从项目根目录起始的相对路径
-            string relPath = sPath.Substring(EnvVar.ProjectDir.Length + 1);
+            // 源文件从项目根目录起始的相对路径,如: wwwroot/xxx/yy
+            string relPath = srcPath.Substring(EnvVar.ProjectDir.Length + 1);
+            // 相对路径第一级目录,如 wwwroot
+            string relPathPart1 = relPath.Substring(0, relPath.IndexOf('/'));
 
-            // 如果路径以 "JsonCfg.SourceDir"的值 开头,那么去掉这一级.发布目录不要源代码根目录这一级.
-            if (relPath.StartsWith(JsonCfg.SourceDir))
-                relPath = relPath.Substring(JsonCfg.SourceDir.Length + 1);
+            // 如果路径等于 "JsonCfg.SourceDir"的第一级目录,那么去掉这一级.发布目录不要源代码根目录这一级.(目录可能只有1级,不带斜杠)
+            string sourceDirPart1 = JsonCfg.SourceDir.Split('/')[0];
+            if (string.Compare(relPathPart1, sourceDirPart1, true) == 0)
+            {
+                relPath = relPath.Substring(relPath.IndexOf('/') + 1);
+            }
 
             // 目标路径
             string targetPath = $"{targetDir}/{relPath}";
