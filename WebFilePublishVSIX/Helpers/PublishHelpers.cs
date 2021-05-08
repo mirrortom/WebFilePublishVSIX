@@ -111,7 +111,7 @@ namespace WebFilePublishVSIX
             // 源文件从项目根目录起始的相对路径,如: wwwroot/xxx/yy
             string relPath = srcPath.Substring(EnvVar.ProjectDir.Length + 1);
             // 相对路径第一级目录,如 wwwroot
-            string relPathPart1 = relPath.Substring(0, relPath.IndexOf('/'));
+            string relPathPart1 = relPath.Split('/')[0];
 
             // 如果路径等于 "JsonCfg.SourceDir"的第一级目录,那么去掉这一级.发布目录不要源代码根目录这一级.(目录可能只有1级,不带斜杠)
             string sourceDirPart1 = JsonCfg.SourceDir.Split('/')[0];
