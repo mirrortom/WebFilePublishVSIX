@@ -13,11 +13,9 @@ namespace WebFilePublishVSIX
                 // 标签上的属性值为空时不要删除,例如<input value="">
                 RemoveEmptyAttributes = false
             };
-            // 这3个标记不要优化掉
+            // body,html,head.如果没有属性会被优化掉的,如果有属性,结束标记会优化掉.
+            // 这个优化是合法的,浏览器会自动补全.
             // 参考文档:https://github.com/trullock/NUglify/issues/27
-            htmlsetting.KeepTags.Add("html");
-            htmlsetting.KeepTags.Add("head");
-            htmlsetting.KeepTags.Add("body");
         }
         /// <summary>
         /// 返回压缩后的html
