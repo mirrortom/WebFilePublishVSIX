@@ -73,7 +73,7 @@ namespace WebFilePublishVSIX
         {
             // Verify the current thread is the UI thread - the call to AddCommand in PublishFile's constructor requires
             // the UI thread.
-            ThreadHelper.ThrowIfNotOnUIThread();
+            //ThreadHelper.ThrowIfNotOnUIThread();
 
             OleMenuCommandService commandService = await package.GetServiceAsync((typeof(IMenuCommandService))) as OleMenuCommandService;
             Instance = new PublishFile(package, commandService);

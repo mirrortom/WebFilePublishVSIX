@@ -24,6 +24,7 @@ namespace WebFilePublishVSIX
         /// <returns></returns>
         public static List<string> GetItems(this Project project)
         {
+           // Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread();
             List<string> files = new List<string>();
             void getItems(ProjectItems items)
             {
