@@ -71,9 +71,10 @@ namespace WebFilePublishVSIX
         /// <param name="package">Owner package, not null.</param>
         public static async Task InitializeAsync(AsyncPackage package)
         {
-            // Verify the current thread is the UI thread - the call to AddCommand in PublishDir's constructor requires
+            // Switch to the main thread - the call to AddCommand in Command1's constructor requires
             // the UI thread.
-            //ThreadHelper.ThrowIfNotOnUIThread();
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
+
 
             OleMenuCommandService commandService = await package.GetServiceAsync((typeof(IMenuCommandService))) as OleMenuCommandService;
             Instance = new PublishDir(package, commandService);
@@ -88,6 +89,7 @@ namespace WebFilePublishVSIX
         /// <param name="e">Event args.</param>
         private void Execute(object sender, EventArgs e)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             //var button = (MenuCommand)sender;
             // 右键点击后选中的文件夹(一般是一个,但也可以多个)
             var selectedDirs = ProjectHelpers.GetSelectedItemPaths();

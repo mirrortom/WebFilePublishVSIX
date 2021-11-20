@@ -69,9 +69,9 @@ namespace WebFilePublishVSIX
         /// <param name="package">Owner package, not null.</param>
         public static async Task InitializeAsync(AsyncPackage package)
         {
-            // Verify the current thread is the UI thread - the call to AddCommand in PublishWeb's constructor requires
+            // Switch to the main thread - the call to AddCommand in Command1's constructor requires
             // the UI thread.
-            //ThreadHelper.ThrowIfNotOnUIThread();
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
             OleMenuCommandService commandService = await package.GetServiceAsync((typeof(IMenuCommandService))) as OleMenuCommandService;
             Instance = new PublishWeb(package, commandService);
@@ -86,6 +86,8 @@ namespace WebFilePublishVSIX
         /// <param name="e">Event args.</param>
         private void Execute(object sender, EventArgs e)
         {
+
+            ThreadHelper.ThrowIfNotOnUIThread();
             //ErrBox.Info(this.package,"功能开发中");
             //var button = (MenuCommand)sender;
 
