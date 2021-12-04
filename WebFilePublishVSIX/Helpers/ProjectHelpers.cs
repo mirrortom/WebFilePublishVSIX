@@ -1,5 +1,6 @@
 ﻿using EnvDTE;
 using EnvDTE80;
+using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,14 +9,22 @@ using System.Runtime.InteropServices;
 
 namespace WebFilePublishVSIX
 {
+    /// <summary>
+    /// 获取项目内资源
+    /// </summary>
     public static class ProjectHelpers
     {
-        private static DTE2 _dte = PublishFilePackage._dte;
+        private static DTE2 _dte = EnvVar._dte;
 
+        /// <summary>
+        /// vs当前活动文档
+        /// </summary>
+        /// <returns></returns>
         public static Document GetActiveDoc()
         {
             return _dte.ActiveDocument;
         }
+
         /// <summary>
         /// 获取当前项目中的所有ProjectItem的路径(它不含bin下的内容,含项目源文件).
         /// 用于发布项目中的文件时,获取源文件路径
@@ -24,7 +33,7 @@ namespace WebFilePublishVSIX
         /// <returns></returns>
         public static List<string> GetItems(this Project project)
         {
-           // Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread();
+            //ThreadHelper.ThrowIfNotOnUIThread();
             List<string> files = new List<string>();
             void getItems(ProjectItems items)
             {
@@ -40,18 +49,11 @@ namespace WebFilePublishVSIX
             getItems(project.ProjectItems);
             return files;
         }
-        public static void CheckFileOutOfSourceControl(string file)
-        {
-            if (!File.Exists(file) || _dte.Solution.FindProjectItem(file) == null)
-                return;
 
-            if (_dte.SourceControl.IsItemUnderSCC(file) && !_dte.SourceControl.IsItemCheckedOut(file))
-                _dte.SourceControl.CheckOutItem(file);
-
-            FileInfo info = new FileInfo(file);
-            info.IsReadOnly = false;
-        }
-
+        /// <summary>
+        /// 当前项目选中的那个文件/目录(项目资源管理窗口中)
+        /// </summary>
+        /// <returns></returns>
         public static IEnumerable<ProjectItem> GetSelectedItems()
         {
             var items = (Array)_dte.ToolWindows.SolutionExplorer.SelectedItems;
@@ -65,6 +67,10 @@ namespace WebFilePublishVSIX
             }
         }
 
+        /// <summary>
+        /// 当前项目选中的那个文件/目录的全(物理)路径 (项目资源管理窗口中)
+        /// </summary>
+        /// <returns></returns>
         public static IEnumerable<string> GetSelectedItemPaths()
         {
             foreach (ProjectItem item in GetSelectedItems())
@@ -73,6 +79,7 @@ namespace WebFilePublishVSIX
                     yield return item.Properties.Item("FullPath").Value.ToString();
             }
         }
+
         /// <summary>
         /// 获取项目根目录路径.返回的目录路径最后不带/或\,且都是/(正斜杠)
         /// </summary>
@@ -115,136 +122,10 @@ namespace WebFilePublishVSIX
             return null;
         }
 
-        public static void AddFileToProject(this Project project, string file, string itemType = null)
-        {
-            if (project.IsKind(ProjectTypes.ASPNET_5, ProjectTypes.DOTNET_Core))
-                return;
-
-            if (_dte.Solution.FindProjectItem(file) == null)
-            {
-                ProjectItem item = project.ProjectItems.AddFromFile(file);
-                item.SetItemType(itemType);
-            }
-        }
-
-        public static void SetItemType(this ProjectItem item, string itemType)
-        {
-            try
-            {
-                if (item == null || item.ContainingProject == null)
-                    return;
-
-                if (string.IsNullOrEmpty(itemType)
-                    || item.ContainingProject.IsKind(ProjectTypes.WEBSITE_PROJECT)
-                    || item.ContainingProject.IsKind(ProjectTypes.UNIVERSAL_APP))
-                    return;
-
-                item.Properties.Item("ItemType").Value = itemType;
-            }
-            catch (Exception ex)
-            {
-                ErrBox.Error(ex);
-                //Logger.Log(ex);
-            }
-        }
-
-        public static void AddNestedFile(string parentFile, string newFile, string itemType = null)
-        {
-            ProjectItem item = _dte.Solution.FindProjectItem(parentFile);
-
-            try
-            {
-                if (item == null
-                    || item.ContainingProject == null
-                    || item.ContainingProject.IsKind(ProjectTypes.ASPNET_5))
-                    return;
-
-                if (item.ProjectItems == null || item.ContainingProject.IsKind(ProjectTypes.UNIVERSAL_APP))
-                {
-                    item.ContainingProject.AddFileToProject(newFile);
-                }
-                else if (_dte.Solution.FindProjectItem(newFile) == null)
-                {
-                    item.ProjectItems.AddFromFile(newFile);
-                }
-
-                ProjectItem newItem = _dte.Solution.FindProjectItem(newFile);
-                newItem.SetItemType(itemType);
-            }
-            catch (Exception ex)
-            {
-                //Logger.Log(ex);
-                ErrBox.Error(ex);
-            }
-        }
-
-        public static bool IsKind(this Project project, params string[] kindGuids)
-        {
-            foreach (var guid in kindGuids)
-            {
-                if (project.Kind.Equals(guid, StringComparison.OrdinalIgnoreCase))
-                    return true;
-            }
-
-            return false;
-        }
-
-        public static void DeleteFileFromProject(string file)
-        {
-            ProjectItem item = _dte.Solution.FindProjectItem(file);
-
-            if (item == null)
-                return;
-            try
-            {
-                item.Delete();
-            }
-            catch (Exception ex)
-            {
-                //Logger.Log(ex);
-                ErrBox.Error(ex);
-            }
-        }
-
-        public static IEnumerable<Project> GetAllProjects()
-        {
-            return _dte.Solution.Projects
-                  .Cast<Project>()
-                  .SelectMany(GetChildProjects)
-                  .Union(_dte.Solution.Projects.Cast<Project>())
-                  .Where(p => { try { return !string.IsNullOrEmpty(p.FullName); } catch { return false; } });
-        }
-
-        private static IEnumerable<Project> GetChildProjects(Project parent)
-        {
-            try
-            {
-                //ProjectKinds.vsProjectKindSolutionFolder
-                if (!parent.IsKind("{66A26720-8FB5-11D2-AA7E-00C04F688DDE}") && parent.Collection == null)  // Unloaded
-                    return Enumerable.Empty<Project>();
-
-                if (!string.IsNullOrEmpty(parent.FullName))
-                    return new[] { parent };
-            }
-            catch (COMException)
-            {
-                return Enumerable.Empty<Project>();
-            }
-
-            return parent.ProjectItems
-                    .Cast<ProjectItem>()
-                    .Where(p => p.SubProject != null)
-                    .SelectMany(p => GetChildProjects(p.SubProject));
-        }
-
-        public static bool IsSolutionLoaded()
-        {
-            if (_dte.Solution == null)
-                return false;
-
-            return GetAllProjects().Any();
-        }
-
+        /// <summary>
+        /// 当前活动的项目(项目资源管理窗口中)
+        /// </summary>
+        /// <returns></returns>
         public static Project GetActiveProject()
         {
             try
@@ -280,28 +161,10 @@ namespace WebFilePublishVSIX
             catch (Exception ex)
             {
                 //Logger.Log("Error getting the active project" + ex);
-                ErrBox.Error(ex);
+                OutPutInfo.Error(ex);
             }
 
             return null;
         }
-
-        public static bool IsConfigFile(this ProjectItem item)
-        {
-            if (item == null || item.Properties == null || item.ContainingProject == null)
-                return false;
-
-            var sourceFile = item.Properties.Item("FullPath").Value.ToString();
-            return Path.GetFileName(sourceFile).Equals(EnvVar.PublishCfgName, StringComparison.OrdinalIgnoreCase);
-        }
-    }
-
-    public static class ProjectTypes
-    {
-        public const string ASPNET_5 = "{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}";
-        public const string DOTNET_Core = "{9A19103F-16F7-4668-BE54-9A1E7A4F7556}";
-        public const string WEBSITE_PROJECT = "{E24C65DC-7377-472B-9ABA-BC803B73C61A}";
-        public const string UNIVERSAL_APP = "{262852C6-CD72-467D-83FE-5EEB1973A190}";
-        public const string NODE_JS = "{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}";
     }
 }

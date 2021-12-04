@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Task = System.Threading.Tasks.Task;
 
+
 namespace WebFilePublishVSIX
 {
     /// <summary>
@@ -27,19 +28,17 @@ namespace WebFilePublishVSIX
     /// </para>
     /// </remarks>
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
-    [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(PublishFilePackage.PackageGuidString)]
-    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     public sealed class PublishFilePackage : AsyncPackage
     {
         /// <summary>
         /// PublishFilePackage GUID string.
         /// </summary>
-        public const string PackageGuidString = "336ecd2c-2941-41e8-afff-71bd154178d3";
-        public static DTE2 _dte;
+        public const string PackageGuidString = "383731c3-506b-4c02-87be-5dd6ac36d434";
+
         /// <summary>
-        /// Initializes a new instance of the <see cref="PublishFile"/> class.
+        /// Initializes a new instance of the <see cref="PublishFilePackage"/> class.
         /// </summary>
         public PublishFilePackage()
         {
@@ -60,10 +59,11 @@ namespace WebFilePublishVSIX
         /// <returns>A task representing the async work of package initialization, or an already completed task if there is none. Do not return null from this method.</returns>
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            _dte = GetService(typeof(DTE)) as DTE2;
+            EnvVar._dte = await GetServiceAsync(typeof(DTE)) as DTE2;
             // When initialized asynchronously, the current thread may be a background thread at this point.
             // Do any initialization that requires the UI thread after switching to the UI thread.
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            // command
             await PublishFile.InitializeAsync(this);
             await PublishDir.InitializeAsync(this);
             await PublishWeb.InitializeAsync(this);

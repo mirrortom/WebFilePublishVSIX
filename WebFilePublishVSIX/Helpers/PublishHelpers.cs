@@ -1,5 +1,4 @@
-﻿using EnvDTE80;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,11 +11,6 @@ namespace WebFilePublishVSIX
     /// </summary>
     static class PublishHelpers
     {
-        /// <summary>
-        /// 用于获取VS相关信息.如VS的"输出"窗口
-        /// </summary>
-        private static DTE2 _dte = PublishFilePackage._dte;
-
         /// <summary>
         /// 发布配置文件对象(用于公用)
         /// </summary>
@@ -53,7 +47,7 @@ namespace WebFilePublishVSIX
             }
             catch (Exception e)
             {
-                return $"publish.json配置文件生成失败!异常信息:{Environment.NewLine}{e}";
+                return $"ERR: publish.json配置文件生成失败!异常信息:{Environment.NewLine}{e}";
             }
         }
         #endregion
@@ -76,7 +70,7 @@ namespace WebFilePublishVSIX
             }
             catch (Exception e)
             {
-                return $"error:发布目录建立失败!异常信息:{Environment.NewLine}{e}";
+                return $"ERR: 发布目录建立失败!异常信息:{Environment.NewLine}{e}";
             }
         }
         /// <summary>
@@ -159,7 +153,7 @@ namespace WebFilePublishVSIX
 
             // vs输出窗口日志信息
             StringBuilder info = new StringBuilder();
-            info.AppendLine($"<开始发布文件:>>>>>>>>>>>>>>>>>>>>>>>>>");
+            info.AppendLine($"START: 开始发布文件------");
 
             // 按预定规则发布文件
             for (int i = 0; i < files.Count; i++)
@@ -171,10 +165,10 @@ namespace WebFilePublishVSIX
 
                 // 发布文件
                 string resFile = OutPutFile(itemPath, targetPath);
-                info.AppendLine($"{i + 1}. {targetPath} {resFile}");
+                info.AppendLine($"\t{i + 1}. {targetPath} {resFile}");
             }
-            info.AppendLine($"<<<<<<<<<<<<<<<<<发布结束.总共[ {files.Count} ]个>");
-            OutPutMsg(info.ToString());
+            info.AppendLine($"END: 发布结束.总共[ {files.Count} ]个...");
+            OutPutInfo.VsOutWind(info.ToString());
             return null;
         }
         /// <summary>
@@ -192,7 +186,7 @@ namespace WebFilePublishVSIX
                 return OutPutCshtml(sPath, tPath);
             }
 
-            string msg = "发布成功";
+            string msg = "INFO: 发布成功";
             // js
             if (extName == ".js" && new int[] { 4, 5, 6, 7 }.Contains(JsonCfg.MiniOutput))
             {
@@ -200,7 +194,7 @@ namespace WebFilePublishVSIX
                 if (js == null)
                 {
                     File.Copy(sPath, tPath, true);
-                    return "发布成功,但压缩js失败,请检查js语法错误";
+                    return "INFO: 发布成功,但压缩js失败,请检查js语法错误";
                 }
                 File.WriteAllText(tPath, js);
                 return msg;
@@ -212,7 +206,7 @@ namespace WebFilePublishVSIX
                 if (css == null)
                 {
                     File.Copy(sPath, tPath, true);
-                    return "发布成功,但压缩js失败,请检查js语法错误";
+                    return "INFO: 发布成功,但压缩js失败,请检查js语法错误";
                 }
                 File.WriteAllText(tPath, css);
                 return msg;
@@ -225,7 +219,7 @@ namespace WebFilePublishVSIX
                 if (html == null)
                 {
                     File.Copy(sPath, tPath, true);
-                    return "发布成功,但压缩html失败,请检查html语法错误";
+                    return "INFO: 发布成功,但压缩html失败,请检查html语法错误";
                 }
                 File.WriteAllText(tPath, html);
                 return msg;
@@ -248,7 +242,7 @@ namespace WebFilePublishVSIX
             if (result.Item1 == false)
             {
                 // 编译失败时
-                return $"发布失败{Environment.NewLine}{result.Item2}";
+                return $"ERR: 发布失败{Environment.NewLine}{result.Item2}";
             }
 
             // 改成html扩展名
@@ -262,13 +256,13 @@ namespace WebFilePublishVSIX
                 if (html == null)
                 {
                     File.WriteAllText(targetPath, result.Item2);
-                    return "发布成功,但压缩html失败,请检查html语法错误";
+                    return "INFO: 发布成功,但压缩html失败,请检查html语法错误";
                 }
                 File.WriteAllText(targetPath, html);
-                return "发布成功";
+                return "INFO: 发布成功";
             }
             File.WriteAllText(targetPath, result.Item2);
-            return "发布成功";
+            return "INFO: 发布成功";
         }
         /// <summary>
         /// 使用预定规则将不需要发布处理的文件清除,返回新文件列表.
@@ -353,7 +347,7 @@ namespace WebFilePublishVSIX
 
                 // vs输出窗口显示信息
                 StringBuilder info = new StringBuilder();
-                info.AppendLine($"<开始发布bin目录:>>>>>>>>>>>>>>>>>>>>>>>>>");
+                info.AppendLine($"START: 开始发布bin目录:------");
                 info.AppendLine($"从: {fromBinDir} 到: {targetDir}");
 
                 for (int i = 0; i < binFiles.Length; i++)
@@ -367,56 +361,17 @@ namespace WebFilePublishVSIX
                     File.Copy(itemPath, targetPath, true);
                     info.AppendLine($"{i + 1} 已发布 {targetPath}");
                 }
-                info.AppendLine($"<<<<<<<<<<<<<<<bin目录文件发布结束.总共[ {binFiles.Length} ]个>");
+                info.AppendLine($"END: bin目录文件发布结束.总共[ {binFiles.Length} ]个...");
                 //
-                OutPutMsg(info.ToString());
+                OutPutInfo.VsOutWind(info.ToString());
                 return null;
             }
             catch (Exception e)
             {
-                return $"error:bin目录发布时发生异常:{Environment.NewLine}{e.ToString()}{Environment.NewLine}";
+                return $"ERR: bin目录发布时发生异常:{Environment.NewLine}{e}{Environment.NewLine}";
             }
         }
 
-        #endregion
-
-        #region 将操作信息输出到VS的"输出"窗口
-        /// <summary>
-        /// 输出信息到VS的"输出"窗口,如果"输出"窗口未打开,则打开后再输出
-        /// </summary>
-        /// <param name="msg"></param>
-        internal static void OutPutMsg(string msg, bool clear = false)
-        {
-
-            EnvDTE.OutputWindowPanes panels =
-                _dte.ToolWindows.OutputWindow.OutputWindowPanes;
-
-            // 输出窗口中的一个自定义项的标题
-            string title = "发布插件 消息";
-            // 
-            EnvDTE.OutputWindowPane panel = null;
-            foreach (EnvDTE.OutputWindowPane item in panels)
-            {
-                if (item.Name == title)
-                {
-                    panel = item;
-                    break;
-                }
-            }
-            if (panel == null)
-                panel = panels.Add(title);
-            // 清空消息
-            if (clear)
-                panel.Clear();
-            // 激活输出窗口的该面板
-            panel.Activate();
-            // 输出消息
-            panel.OutputString(msg);
-
-            // 显示(激活) vs"输出"窗口
-            string winCaption = "输出";
-            _dte.Windows.Item(winCaption).Activate();
-        }
         #endregion
     }
 }

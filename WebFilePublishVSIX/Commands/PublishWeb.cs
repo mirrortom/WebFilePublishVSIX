@@ -8,19 +8,19 @@ using Task = System.Threading.Tasks.Task;
 namespace WebFilePublishVSIX
 {
     /// <summary>
-    /// Command handler
+    /// Command 发布项目
     /// </summary>
     internal sealed class PublishWeb
     {
         /// <summary>
         /// Command ID.
         /// </summary>
-        public const int CommandId = 0x0101;
+        public const int CommandId = 5004;
 
         /// <summary>
         /// Command menu group (command set GUID).
         /// </summary>
-        public static readonly Guid CommandSet = new Guid("e7514953-7497-4339-a256-b3f9fab7a241");
+        public static readonly Guid CommandSet = new Guid("a78773fc-5eb9-4758-b643-c54938b4e222");
 
         /// <summary>
         /// VS Package that provides this command, not null.
@@ -69,11 +69,11 @@ namespace WebFilePublishVSIX
         /// <param name="package">Owner package, not null.</param>
         public static async Task InitializeAsync(AsyncPackage package)
         {
-            // Switch to the main thread - the call to AddCommand in Command1's constructor requires
+            // Switch to the main thread - the call to AddCommand in PublishWeb's constructor requires
             // the UI thread.
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
-            OleMenuCommandService commandService = await package.GetServiceAsync((typeof(IMenuCommandService))) as OleMenuCommandService;
+            OleMenuCommandService commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
             Instance = new PublishWeb(package, commandService);
         }
 
@@ -86,41 +86,37 @@ namespace WebFilePublishVSIX
         /// <param name="e">Event args.</param>
         private void Execute(object sender, EventArgs e)
         {
-
-            ThreadHelper.ThrowIfNotOnUIThread();
-            //ErrBox.Info(this.package,"功能开发中");
-            //var button = (MenuCommand)sender;
-
+            //ThreadHelper.ThrowIfNotOnUIThread();
             // 当前活动项目路径
             Project activeProj = ProjectHelpers.GetActiveProject();
             if (activeProj == null)
             {
-                ErrBox.Info(this.package, "未选中WEB项目"); return;
+                OutPutInfo.Info("未选中WEB项目"); return;
             }
             // 建立发布配置对象
             EnvVar.ProjectDir = activeProj.GetRootFolder();
             string res = PublishHelpers.CreatePublishCfg();
             if (res != null)
             {
-                ErrBox.Info(this.package, res); return;
+                OutPutInfo.Info(res); return;
             }
 
             // 发布前删除发布目录下所有文件(根据配置文件的设置而执行)
             string emptyOutDir = PublishHelpers.EmptyPuslishDir();
             if (emptyOutDir != null)
             {
-                ErrBox.Info(this.package, emptyOutDir); return;
+                OutPutInfo.Info(emptyOutDir); return;
             }
 
             //
-            PublishHelpers.OutPutMsg("<发布项目>------" + Environment.NewLine, true);
+            OutPutInfo.VsOutWind("<<<--发布项目-->>>" + Environment.NewLine, true);
 
             // 如果要发布bin目录,才编译项目
             if (PublishHelpers.JsonCfg.BuildBin == true)
             {
                 // 编译项目. buildCfg : debug和release.取自当前选中的编译选项
                 string buildCfg = activeProj.ConfigurationManager.ActiveConfiguration.ConfigurationName;
-                PublishFilePackage._dte.Solution.SolutionBuild.BuildProject(buildCfg, activeProj.UniqueName, true);
+                EnvVar._dte.Solution.SolutionBuild.BuildProject(buildCfg, activeProj.UniqueName, true);
                 // 编译后DLL文件所在目录.是一个相对于项目根目录起始的目录
                 string outBinDir = activeProj.ConfigurationManager.ActiveConfiguration.Properties.Item("OutputPath").Value.ToString().Replace('\\', '/').Trim('/');
 
@@ -128,7 +124,7 @@ namespace WebFilePublishVSIX
                 string resBin = PublishHelpers.PublishBin(outBinDir);
                 if (resBin != null)
                 {
-                    ErrBox.Info(this.package, resBin); return;
+                    OutPutInfo.Info(resBin); return;
                 }
             }
 
@@ -137,16 +133,19 @@ namespace WebFilePublishVSIX
             List<string> srcfiles = activeProj.GetItems();
             if (srcfiles.Count == 0)
             {
-                ErrBox.Info(this.package, "未发布文件,没有找到适合发布的文件.");
+                OutPutInfo.Info("未发布文件,没有找到适合发布的文件.");
                 return;
             }
 
             // 发布处理
-            string resinfo = PublishHelpers.PublishFiles(srcfiles);
-            if (resinfo != null)
+            Task.Factory.StartNew(() =>
             {
-                ErrBox.Info(this.package, resinfo);
-            }
+                string resinfo = PublishHelpers.PublishFiles(srcfiles);
+                if (resinfo != null)
+                {
+                    OutPutInfo.Info(resinfo);
+                }
+            });
         }
     }
 }

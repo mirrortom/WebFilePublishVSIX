@@ -9,8 +9,6 @@ using System.Text.RegularExpressions;
 namespace WebFilePublishVSIX
 {
     /*==========================================================================================================
-        Mirror始建于2018年6月16日 16:53:59
-
         1.类功能:使用RazorEngine开源库编译cshtml页面,得到静态页.
         2.设计功能:使用cshtml页面模块化编写HTML文件,语法习惯与razor相同.暂不支持@model数据,因为主要目标是模块化html.之前使用字符串替换的方式,实现过一个版本,模块化可以实现,但功能弱,只能简单替换字符串变量,不能运行代码.现在这版使用真正的Razor页面,利用RazorEngine编译,可以使用Razor页面的多种基本功能.
         3.功能示例:一个a.cshtml页面如下:
@@ -49,7 +47,7 @@ namespace WebFilePublishVSIX
     ============================================================================================================*/
 
     /// <summary>
-    /// razor编译CSHTML
+    /// razor编译CSHTML 换了4.5.1预览版
     /// </summary>
     public static class RazorCshtml
     {
@@ -65,11 +63,14 @@ namespace WebFilePublishVSIX
         static RazorCshtml()
         {
             config = new TemplateServiceConfiguration();
-            // 使用RoslynCompiler编译,不然运行插件运行时会卡死
+            // 问题issue:https://github.com/Antaris/RazorEngine/issues/286
+            // 尝试指定加载程序集,结果不成功."动态程序集不支持被调用的成员"
+            // 还是用Roslyn编译,否则很慢vs2022以前直接卡死,加载程序集太多了.测试有678个.
             config.CompilerServiceFactory = new RazorEngine.Roslyn.RoslynCompilerServiceFactory();
+            //
+            config.Language = Language.CSharp;
             config.CompilerServiceFactory.CreateCompilerService(Language.CSharp);
             config.CachingProvider = new DefaultCachingProvider(t => { });
-            config.Language = Language.CSharp;
             config.AllowMissingPropertiesOnDynamic = true;
             config.DisableTempFileLocking = true;
             // 静态构造只执行一次,这里初始化引擎服务.然后一直使用这个服务,并不释放它.因为服务建立耗时较长,大概1秒多.之前在using里编译完就释放,每次都要初始化,结果太慢.在控制台程序里并不慢,但一放在插件里,就不行.故这里初始化之后,不再释放.
@@ -106,7 +107,7 @@ namespace WebFilePublishVSIX
             foreach (string key in temps.Keys)
             {
                 // 如果文件有变化才重新添加模板和编译,因为编译时间比较长
-                if (!RazorCacheHelpers.IsChange(key, temps[key]))
+                if (!CacheHelper.IsChange(key, temps[key]))
                     continue;
 
                 // 键是文件的相对路径名,是固定的,每个cshtml的路径是唯一的.
@@ -202,4 +203,5 @@ namespace WebFilePublishVSIX
         }
 
     }
+
 }

@@ -62,19 +62,18 @@ namespace WebFilePublishVSIX
             }
             return null;
         }
-         
+
         /// <summary>
         /// 计算字符串(使用UTF8编码)的摘要(md5)值并返回.
         /// </summary>
-        /// <param name="s"></param>
+        /// <param name="plain"></param>
         /// <returns></returns>
-        public static string StringMd5(string s)
+        public static string StringMd5(string plain)
         {
-            MD5 md5 = MD5.Create();
-            byte[] buffer = Encoding.UTF8.GetBytes(s);
-            byte[] data = md5.ComputeHash(buffer);
+            byte[] buffer = Encoding.UTF8.GetBytes(plain);
+            byte[] md5bytes = MD5.Create().ComputeHash(buffer);
             StringBuilder sb = new StringBuilder();
-            foreach (var t in data)
+            foreach (var t in md5bytes)
             {
                 sb.Append(t.ToString("x2"));
             }

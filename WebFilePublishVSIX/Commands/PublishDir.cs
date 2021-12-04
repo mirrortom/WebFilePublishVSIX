@@ -10,19 +10,19 @@ using Task = System.Threading.Tasks.Task;
 namespace WebFilePublishVSIX
 {
     /// <summary>
-    /// Command handler
+    /// Command 发布选中目录
     /// </summary>
     internal sealed class PublishDir
     {
         /// <summary>
         /// Command ID.
         /// </summary>
-        public const int CommandId = 0x0101;
+        public const int CommandId = 5003;
 
         /// <summary>
         /// Command menu group (command set GUID).
         /// </summary>
-        public static readonly Guid CommandSet = new Guid("d53213b4-8849-441a-bb0d-eb9ace3f9a8a");
+        public static readonly Guid CommandSet = new Guid("7b3b3c16-61a5-44c5-9d5e-4f8c679acfa4");
 
         /// <summary>
         /// VS Package that provides this command, not null.
@@ -71,12 +71,11 @@ namespace WebFilePublishVSIX
         /// <param name="package">Owner package, not null.</param>
         public static async Task InitializeAsync(AsyncPackage package)
         {
-            // Switch to the main thread - the call to AddCommand in Command1's constructor requires
+            // Switch to the main thread - the call to AddCommand in PublishDir's constructor requires
             // the UI thread.
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
-
-            OleMenuCommandService commandService = await package.GetServiceAsync((typeof(IMenuCommandService))) as OleMenuCommandService;
+            OleMenuCommandService commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
             Instance = new PublishDir(package, commandService);
         }
 
@@ -89,27 +88,26 @@ namespace WebFilePublishVSIX
         /// <param name="e">Event args.</param>
         private void Execute(object sender, EventArgs e)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-            //var button = (MenuCommand)sender;
+            //ThreadHelper.ThrowIfNotOnUIThread();
             // 右键点击后选中的文件夹(一般是一个,但也可以多个)
             var selectedDirs = ProjectHelpers.GetSelectedItemPaths();
             if (selectedDirs.Count() == 0)
             {
-                ErrBox.Info(this.package, "未选中文件夹!"); return;
+                OutPutInfo.Info("未选中文件夹!"); return;
             }
 
             // 当前活动项目路径
             Project activeProj = ProjectHelpers.GetActiveProject();
             if (activeProj == null)
             {
-                ErrBox.Info(this.package, "未选中WEB项目"); return;
+                OutPutInfo.Info("未选中WEB项目"); return;
             }
             // 建立发布配置对象
             EnvVar.ProjectDir = activeProj.GetRootFolder();
             string res = PublishHelpers.CreatePublishCfg();
             if (res != null)
             {
-                ErrBox.Info(this.package, res); return;
+                OutPutInfo.Info(res); return;
             }
 
             // 取得要发布的文件路径 
@@ -122,15 +120,19 @@ namespace WebFilePublishVSIX
             }
             if (srcfiles.Count == 0)
             {
-                ErrBox.Info(this.package, "至少选择一个文件夹!");
+                OutPutInfo.Info("至少选择一个文件夹!");
                 return;
             }
             // 发布处理
-            string resinfo = PublishHelpers.PublishFiles(srcfiles);
-            if (resinfo != null)
+            // 发布处理
+            Task.Factory.StartNew(() =>
             {
-                ErrBox.Info(this.package, resinfo);
-            }
+                string resinfo = PublishHelpers.PublishFiles(srcfiles);
+                if (resinfo != null)
+                {
+                    OutPutInfo.Info(resinfo);
+                }
+            });
         }
     }
 }

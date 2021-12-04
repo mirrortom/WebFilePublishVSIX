@@ -3,26 +3,25 @@ using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-
-using System.Text;
+using System.Threading;
 using Task = System.Threading.Tasks.Task;
 
 namespace WebFilePublishVSIX
 {
     /// <summary>
-    /// Command handler
+    /// Command 发布当前活动文件
     /// </summary>
     internal sealed class PublishActiveFile
     {
         /// <summary>
         /// Command ID.
         /// </summary>
-        public const int CommandId = 256;
+        public const int CommandId = 5001;
 
         /// <summary>
         /// Command menu group (command set GUID).
         /// </summary>
-        public static readonly Guid CommandSet = new Guid("36a0806e-5fc9-4548-984d-d6d446146f78");
+        public static readonly Guid CommandSet = new Guid("b86c85a7-c956-4a19-92ca-6e73c54fd9ea");
 
         /// <summary>
         /// VS Package that provides this command, not null.
@@ -71,11 +70,11 @@ namespace WebFilePublishVSIX
         /// <param name="package">Owner package, not null.</param>
         public static async Task InitializeAsync(AsyncPackage package)
         {
-            // Switch to the main thread - the call to AddCommand in Command1's constructor requires
+            // Switch to the main thread - the call to AddCommand in PublishActiveFile's constructor requires
             // the UI thread.
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
-            OleMenuCommandService commandService = await package.GetServiceAsync((typeof(IMenuCommandService))) as OleMenuCommandService;
+            OleMenuCommandService commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
             Instance = new PublishActiveFile(package, commandService);
         }
 
@@ -88,27 +87,26 @@ namespace WebFilePublishVSIX
         /// <param name="e">Event args.</param>
         private void Execute(object sender, EventArgs e)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
+            //ThreadHelper.ThrowIfNotOnUIThread();
             // 发布当前处于活动状态的1个文件 如果没有活动文件,不动作
             var activedoc = ProjectHelpers.GetActiveDoc();
             if (activedoc == null)
             {
-                ErrBox.Info(this.package, "未找到激活的文件"); return;
+                OutPutInfo.Info("未找到激活的文件"); return;
             }
 
             // 当前活动项目路径
             Project activeProj = ProjectHelpers.GetActiveProject();
             if (activeProj == null)
             {
-                ErrBox.Info(this.package, "未选中WEB项目"); return;
+                OutPutInfo.Info("未选中WEB项目"); return;
             }
             // 建立发布配置对象
             EnvVar.ProjectDir = activeProj.GetRootFolder();
             string res = PublishHelpers.CreatePublishCfg();
             if (res != null)
             {
-                ErrBox.Info(this.package, res); return;
+                OutPutInfo.Info(res); return;
             }
 
             // 取得要发布的文件路径
@@ -117,11 +115,14 @@ namespace WebFilePublishVSIX
                 activedoc.FullName
             };
             // 发布处理
-            string resinfo = PublishHelpers.PublishFiles(srcfiles);
-            if (resinfo != null)
-            {
-                ErrBox.Info(this.package, resinfo);
-            }
+            Task.Factory.StartNew(() =>
+              {
+                  string resinfo = PublishHelpers.PublishFiles(srcfiles);
+                  if (resinfo != null)
+                  {
+                      OutPutInfo.Info(resinfo);
+                  }
+              });
         }
     }
 }
