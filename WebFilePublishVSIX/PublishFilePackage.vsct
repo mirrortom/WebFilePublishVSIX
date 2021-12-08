@@ -46,7 +46,7 @@
 				<Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_PROJNODE" />
 			</Group>
 			<Group guid="guidPublishFilePackageCmdSetActiveFile" id="MyMenuGroupActiveFile" priority="0x0600">
-				<Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_EDIT" />
+				<Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_NOCOMMANDS" />
 			</Group>
 		</Groups>
 
@@ -91,7 +91,9 @@
 			</Button>
 		</Buttons>
 	</Commands>
-
+	<!--快捷键
+	https://docs.microsoft.com/zh-cn/visualstudio/extensibility/binding-keyboard-shortcuts-to-menu-items?view=vs-2022
+	-->
 	<!--Keybinding的guid值是GuidSymbol节点的name值,id值是其下字节点IDSymbol的name值(cmdid那个)-->
 	<KeyBindings>
 		<KeyBinding guid="guidPublishFilePackageCmdSetActiveFile" id="cmdidPublishActiveFile" mod1="ALT" mod2="ALT" key1="Q" key2="Q" editor="guidVSStd97" />
