@@ -1,29 +1,29 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-	<!--  This is the file that defines the actual layout and type of the commands.
+  <!--  This is the file that defines the actual layout and type of the commands.
         It is divided in different sections (e.g. command definition, command
         placement, ...), with each defining a specific set of properties.
         See the comment before each section for more details about how to
         use it. -->
 
-	<!--  The VSCT compiler (the tool that translates this file into the binary
+  <!--  The VSCT compiler (the tool that translates this file into the binary
         format that VisualStudio will consume) has the ability to run a preprocessor
         on the vsct file; this preprocessor is (usually) the C++ preprocessor, so
         it is possible to define includes and macros with the same syntax used
         in C++ files. Using this ability of the compiler here, we include some files
         defining some of the constants that we will use inside the file. -->
 
-	<!--This is the file that defines the IDs for all the commands exposed by VisualStudio. -->
-	<Extern href="stdidcmd.h"/>
+  <!--This is the file that defines the IDs for all the commands exposed by VisualStudio. -->
+  <Extern href="stdidcmd.h" />
 
-	<!--This header contains the command ids for the menus provided by the shell. -->
-	<Extern href="vsshlids.h"/>
+  <!--This header contains the command ids for the menus provided by the shell. -->
+  <Extern href="vsshlids.h" />
 
-	<!--The Commands section is where commands, menus, and menu groups are defined.
+  <!--The Commands section is where commands, menus, and menu groups are defined.
       This section uses a Guid to identify the package that provides the command defined inside it. -->
-	<Commands package="guidPublishFilePackage">
-		<!-- Inside this section we have different sub-sections: one for the menus, another
+  <Commands package="guidPublishFilePackage">
+    <!-- Inside this section we have different sub-sections: one for the menus, another
     for the menu groups, one for the buttons (the actual commands), one for the combos
     and the last one for the bitmaps used. Each element is identified by a command id that
     is a unique pair of guid and numeric identifier; the guid part of the identifier is usually
@@ -31,30 +31,30 @@
     group; your package should define its own command set in order to avoid collisions
     with command ids defined by other packages. -->
 
-		<!-- In this section you can define new menu groups. A menu group is a container for
+    <!-- In this section you can define new menu groups. A menu group is a container for
          other menus or buttons (commands); from a visual point of view you can see the
          group as the part of a menu contained between two lines. The parent of a group
          must be a menu. -->
-		<Groups>
-			<Group guid="guidPublishFilePackageCmdSetFILE" id="MyMenuGroupFile" priority="0x0600">
-				<Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_ITEMNODE" />
-			</Group>
-			<Group guid="guidPublishFilePackageCmdSetDIR" id="MyMenuGroupDir" priority="0x0600">
-				<Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_FOLDERNODE" />
-			</Group>
-			<Group guid="guidPublishFilePackageCmdSetWEB" id="MyMenuGroupWEB" priority="0x0600">
-				<Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_PROJNODE" />
-			</Group>
-			<Group guid="guidPublishFilePackageCmdSetActiveFile" id="MyMenuGroupActiveFile" priority="0x0600">
-				<Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_NOCOMMANDS" />
-			</Group>
-		</Groups>
+    <Groups>
+      <Group guid="guidPublishFilePackageCmdSetFILE" id="MyMenuGroupFile" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_ITEMNODE" />
+      </Group>
+      <Group guid="guidPublishFilePackageCmdSetDIR" id="MyMenuGroupDir" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_FOLDERNODE" />
+      </Group>
+      <Group guid="guidPublishFilePackageCmdSetWEB" id="MyMenuGroupWEB" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_PROJNODE" />
+      </Group>
+      <Group guid="guidPublishFilePackageCmdSetActiveFile" id="MyMenuGroupActiveFile" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_NOCOMMANDS" />
+      </Group>
+    </Groups>
 
-		<!--Buttons section. -->
-		<!--This section defines the elements the user can interact with, like a menu command or a button
+    <!--Buttons section. -->
+    <!--This section defines the elements the user can interact with, like a menu command or a button
         or combo box in a toolbar. -->
-		<Buttons>
-			<!--To define a menu group you have to specify its ID, the parent menu and its display priority.
+    <Buttons>
+      <!--To define a menu group you have to specify its ID, the parent menu and its display priority.
           The command is visible and enabled by default. If you need to change the visibility, status, etc, you can use
           the CommandFlag node.
           You can add more than one CommandFlag node e.g.:
@@ -62,74 +62,74 @@
               <CommandFlag>DynamicVisibility</CommandFlag>
           If you do not want an image next to your command, remove the Icon node /> -->
 
-			<!--Button的guid值是GuidSymbol节点的name值,id值是其下字节点IDSymbol的name值(cmdid那个)-->
-			<!--Button子节点Parent的guid值也是GuidSymbol节点的name值,id值是其下字节点IDSymbol的name值(MyMenuGroup那个)-->
-			<Button guid="guidPublishFilePackageCmdSetActiveFile" id="cmdidPublishActiveFile" priority="0x0100" type="Button">
-				<Parent guid="guidPublishFilePackageCmdSetActiveFile" id="MyMenuGroupActiveFile" />
-				<Strings>
-					<ButtonText>发布当前编辑文件</ButtonText>
-				</Strings>
-			</Button>
+      <!--Button的guid值是GuidSymbol节点的name值,id值是其下字节点IDSymbol的name值(cmdid那个)-->
+      <!--Button子节点Parent的guid值也是GuidSymbol节点的name值,id值是其下字节点IDSymbol的name值(MyMenuGroup那个)-->
+      <Button guid="guidPublishFilePackageCmdSetActiveFile" id="cmdidPublishActiveFile" priority="0x0100" type="Button">
+        <Parent guid="guidPublishFilePackageCmdSetActiveFile" id="MyMenuGroupActiveFile" />
+        <Strings>
+          <ButtonText>发布当前编辑文件</ButtonText>
+        </Strings>
+      </Button>
 
-			<Button guid="guidPublishFilePackageCmdSetFILE" id="cmdidPublishFile" priority="0x0100" type="Button">
-				<Parent guid="guidPublishFilePackageCmdSetFILE" id="MyMenuGroupFile" />
-				<Strings>
-					<ButtonText>发布文件</ButtonText>
-				</Strings>
-			</Button>
-			<Button guid="guidPublishFilePackageCmdSetDIR" id="cmdidPublishDir" priority="0x0100" type="Button">
-				<Parent guid="guidPublishFilePackageCmdSetDIR" id="MyMenuGroupDir" />
-				<Strings>
-					<ButtonText>发布文件夹</ButtonText>
-				</Strings>
-			</Button>
-			<Button guid="guidPublishFilePackageCmdSetWEB" id="cmdidPublishWeb" priority="0x0100" type="Button">
-				<Parent guid="guidPublishFilePackageCmdSetWEB" id="MyMenuGroupWEB" />
-				<Strings>
-					<ButtonText>发布Web</ButtonText>
-				</Strings>
-			</Button>
-		</Buttons>
-	</Commands>
-	<!--快捷键
+      <Button guid="guidPublishFilePackageCmdSetFILE" id="cmdidPublishFile" priority="0x0100" type="Button">
+        <Parent guid="guidPublishFilePackageCmdSetFILE" id="MyMenuGroupFile" />
+        <Strings>
+          <ButtonText>发布文件</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidPublishFilePackageCmdSetDIR" id="cmdidPublishDir" priority="0x0100" type="Button">
+        <Parent guid="guidPublishFilePackageCmdSetDIR" id="MyMenuGroupDir" />
+        <Strings>
+          <ButtonText>发布文件夹</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidPublishFilePackageCmdSetWEB" id="cmdidPublishWeb" priority="0x0100" type="Button">
+        <Parent guid="guidPublishFilePackageCmdSetWEB" id="MyMenuGroupWEB" />
+        <Strings>
+          <ButtonText>发布Web</ButtonText>
+        </Strings>
+      </Button>
+    </Buttons>
+  </Commands>
+  <!--快捷键
 	https://docs.microsoft.com/zh-cn/visualstudio/extensibility/binding-keyboard-shortcuts-to-menu-items?view=vs-2022
 	-->
-	<!--Keybinding的guid值是GuidSymbol节点的name值,id值是其下字节点IDSymbol的name值(cmdid那个)-->
-	<KeyBindings>
-		<KeyBinding guid="guidPublishFilePackageCmdSetActiveFile" id="cmdidPublishActiveFile" mod1="ALT" mod2="ALT" key1="Q" key2="Q" editor="guidVSStd97" />
-		<KeyBinding guid="guidPublishFilePackageCmdSetFILE" id="cmdidPublishFile" mod1="ALT" mod2="ALT" key1="1" key2="1" editor="guidVSStd97" />
-		<KeyBinding guid="guidPublishFilePackageCmdSetDIR" id="cmdidPublishDir" mod1="ALT" mod2="ALT" key1="2" key2="2" editor="guidVSStd97" />
-		<KeyBinding guid="guidPublishFilePackageCmdSetWEB" id="cmdidPublishWeb" mod1="ALT" mod2="ALT" key1="3" key2="3" editor="guidVSStd97" />
-	</KeyBindings>
+  <!--Keybinding的guid值是GuidSymbol节点的name值,id值是其下字节点IDSymbol的name值(cmdid那个)-->
+  <KeyBindings>
+    <KeyBinding guid="guidPublishFilePackageCmdSetActiveFile" id="cmdidPublishActiveFile" mod1="ALT" mod2="ALT" key1="Q" key2="Q" editor="guidVSStd97" />
+    <KeyBinding guid="guidPublishFilePackageCmdSetFILE" id="cmdidPublishFile" mod1="ALT" mod2="ALT" key1="1" key2="1" editor="guidVSStd97" />
+    <KeyBinding guid="guidPublishFilePackageCmdSetDIR" id="cmdidPublishDir" mod1="ALT" mod2="ALT" key1="2" key2="2" editor="guidVSStd97" />
+    <KeyBinding guid="guidPublishFilePackageCmdSetWEB" id="cmdidPublishWeb" mod1="ALT" mod2="ALT" key1="3" key2="3" editor="guidVSStd97" />
+  </KeyBindings>
 
-	<Symbols>
-		<!-- This is the package guid.注意这里是命令的基础信息定义,先修改这个节点.-->
-		<!--这个是命令项目GUID,对应PublishFilePackage.cs里的常量PackageGuidString -->
-		<GuidSymbol name="guidPublishFilePackage" value="{383731c3-506b-4c02-87be-5dd6ac36d434}" />
+  <Symbols>
+    <!-- This is the package guid.注意这里是命令的基础信息定义,先修改这个节点.-->
+    <!--这个是命令项目GUID,对应PublishFilePackage.cs里的常量PackageGuidString -->
+    <GuidSymbol name="guidPublishFilePackage" value="{383731c3-506b-4c02-87be-5dd6ac36d434}" />
 
-		<!-- This is the guid used to group the menu commands together -->
-		<!--关键地方:一个GuidSymbol节,会对应一个命令类.(每添加一个自定义命令时,就会增加一个命令类,并且此处会增加节点)-->
-		<!--GuidSymbol节定义命令guid属性,name定义guid属性名,value定义其值,该值对应命令类的成员-常量值CommandSet-->
-		<!--IDSymbol用于定义命令的id属性.有两个,一个用于命令,一个用于命令所在的命令组-->
-		<!--用于组的name值约定了MyMenuGroup开头,用于命令的name值约定cmdid开头-->
-		<!--用于MyMenuGroup的value值,用一样的ox0100没出现问题-->
-		<!--用于cmdid的value值,一定要对应命令类的成员-常量值CommandId,否则点击命令时无效,这个值可以取个整数,同一组下的命令不能相同.最好是都不相同.-->
-		<GuidSymbol name="guidPublishFilePackageCmdSetActiveFile" value="{b86c85a7-c956-4a19-92ca-6e73c54fd9ea}" >
-			<IDSymbol name="MyMenuGroupActiveFile" value="0x0100" />
-			<IDSymbol name="cmdidPublishActiveFile" value="5001" />
-		</GuidSymbol>
-		<GuidSymbol name="guidPublishFilePackageCmdSetFILE" value="{ad4db081-ac12-4c7d-80d2-5db27c625638}">
-			<IDSymbol name="MyMenuGroupFile" value="0x0100" />
-			<IDSymbol name="cmdidPublishFile" value="5002" />
-		</GuidSymbol>
-		<GuidSymbol name="guidPublishFilePackageCmdSetDIR" value="{7b3b3c16-61a5-44c5-9d5e-4f8c679acfa4}">
-			<IDSymbol name="MyMenuGroupDir" value="0x0100" />
-			<IDSymbol name="cmdidPublishDir" value="5003" />
-		</GuidSymbol>
-		<GuidSymbol name="guidPublishFilePackageCmdSetWEB" value="{a78773fc-5eb9-4758-b643-c54938b4e222}">
-			<IDSymbol name="MyMenuGroupWEB" value="0x0100" />
-			<IDSymbol name="cmdidPublishWeb" value="5004" />
-		</GuidSymbol>
-	</Symbols>
+    <!-- This is the guid used to group the menu commands together -->
+    <!--关键地方:一个GuidSymbol节,会对应一个命令类.(每添加一个自定义命令时,就会增加一个命令类,并且此处会增加节点)-->
+    <!--GuidSymbol节定义命令guid属性,name定义guid属性名,value定义其值,该值对应命令类的成员-常量值CommandSet-->
+    <!--IDSymbol用于定义命令的id属性.有两个,一个用于命令,一个用于命令所在的命令组-->
+    <!--用于组的name值约定了MyMenuGroup开头,用于命令的name值约定cmdid开头-->
+    <!--用于MyMenuGroup的value值,用一样的ox0100没出现问题-->
+    <!--用于cmdid的value值,一定要对应命令类的成员-常量值CommandId,否则点击命令时无效,这个值可以取个整数,同一组下的命令不能相同.最好是都不相同.-->
+    <GuidSymbol name="guidPublishFilePackageCmdSetActiveFile" value="{b86c85a7-c956-4a19-92ca-6e73c54fd9ea}">
+      <IDSymbol name="MyMenuGroupActiveFile" value="0x0100" />
+      <IDSymbol name="cmdidPublishActiveFile" value="5001" />
+    </GuidSymbol>
+    <GuidSymbol name="guidPublishFilePackageCmdSetFILE" value="{ad4db081-ac12-4c7d-80d2-5db27c625638}">
+      <IDSymbol name="MyMenuGroupFile" value="0x0100" />
+      <IDSymbol name="cmdidPublishFile" value="5002" />
+    </GuidSymbol>
+    <GuidSymbol name="guidPublishFilePackageCmdSetDIR" value="{7b3b3c16-61a5-44c5-9d5e-4f8c679acfa4}">
+      <IDSymbol name="MyMenuGroupDir" value="0x0100" />
+      <IDSymbol name="cmdidPublishDir" value="5003" />
+    </GuidSymbol>
+    <GuidSymbol name="guidPublishFilePackageCmdSetWEB" value="{a78773fc-5eb9-4758-b643-c54938b4e222}">
+      <IDSymbol name="MyMenuGroupWEB" value="0x0100" />
+      <IDSymbol name="cmdidPublishWeb" value="5004" />
+    </GuidSymbol>
+  </Symbols>
 </CommandTable>
 <!--这个文件给定义菜单命令,菜单文字和快捷键.搞这点小事,实在是太麻烦了,XML就是没有JSON方便.有必要搞这么复杂吗,难道这就是设计?God save me!-->

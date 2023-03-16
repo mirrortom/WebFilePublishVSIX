@@ -206,7 +206,7 @@ namespace WebFilePublishVSIX
                 if (css == null)
                 {
                     File.Copy(sPath, tPath, true);
-                    return "INFO: 发布成功,但压缩js失败,请检查js语法错误";
+                    return "INFO: 发布成功,但压缩css失败,请检查css语法错误";
                 }
                 File.WriteAllText(tPath, css);
                 return msg;
