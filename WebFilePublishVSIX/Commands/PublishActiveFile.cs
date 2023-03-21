@@ -1,128 +1,61 @@
-﻿using EnvDTE;
-using Microsoft.VisualStudio.Shell;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.Design;
-using System.Threading;
-using Task = System.Threading.Tasks.Task;
+﻿using System.Collections.Generic;
+using System.IO;
 
-namespace WebFilePublishVSIX
+namespace WebFilePublishVSIX;
+
+/// <summary>
+/// Command 发布当前活动文件
+/// </summary>
+[Command(PackageIds.cmdidPublishActiveFile)]
+internal sealed class PublishActiveFile : BaseCommand<PublishActiveFile>
 {
     /// <summary>
-    /// Command 发布当前活动文件
+    ///
     /// </summary>
-    internal sealed class PublishActiveFile
+    /// <param name="e"></param>
+    /// <returns></returns>
+    protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
     {
-        /// <summary>
-        /// Command ID.
-        /// </summary>
-        public const int CommandId = 5001;
-
-        /// <summary>
-        /// Command menu group (command set GUID).
-        /// </summary>
-        public static readonly Guid CommandSet = new Guid("b86c85a7-c956-4a19-92ca-6e73c54fd9ea");
-
-        /// <summary>
-        /// VS Package that provides this command, not null.
-        /// </summary>
-        private readonly AsyncPackage package;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PublishActiveFile"/> class.
-        /// Adds our command handlers for menu (commands must exist in the command table file)
-        /// </summary>
-        /// <param name="package">Owner package, not null.</param>
-        /// <param name="commandService">Command service to add command to, not null.</param>
-        private PublishActiveFile(AsyncPackage package, OleMenuCommandService commandService)
+        // 发布当前处于活动状态的1个文件 如果没有活动文件,不动作
+        DocumentView docView = await VS.Documents.GetActiveDocumentViewAsync();
+        if (docView?.Document == null)
         {
-            this.package = package ?? throw new ArgumentNullException(nameof(package));
-            commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
-
-            var menuCommandID = new CommandID(CommandSet, CommandId);
-            var menuItem = new MenuCommand(this.Execute, menuCommandID);
-            commandService.AddCommand(menuItem);
+            OutPutInfo.Info("未找到激活的文件");
+            return;
         }
 
-        /// <summary>
-        /// Gets the instance of the command.
-        /// </summary>
-        public static PublishActiveFile Instance
+        // 当前活动项目路径
+        Project activeProj = await VS.Solutions.GetActiveProjectAsync();
+        if (activeProj == null)
         {
-            get;
-            private set;
+            OutPutInfo.Info("未选中WEB项目"); return;
         }
 
-        /// <summary>
-        /// Gets the service provider from the owner package.
-        /// </summary>
-        private Microsoft.VisualStudio.Shell.IAsyncServiceProvider ServiceProvider
+        // 建立发布配置对象
+        EnvVar.ProjectDir = Path.GetDirectoryName(activeProj.FullPath);
+        //string res = PublishHelpers.CreatePublishCfg();
+        //if (res != null)
+        //{
+        //    OutPutInfo.Info(res); return;
+        //}
+
+        // 取得要发布的文件路径
+        List<string> srcfiles = new List<string>
         {
-            get
-            {
-                return this.package;
-            }
-        }
-
-        /// <summary>
-        /// Initializes the singleton instance of the command.
-        /// </summary>
-        /// <param name="package">Owner package, not null.</param>
-        public static async Task InitializeAsync(AsyncPackage package)
-        {
-            // Switch to the main thread - the call to AddCommand in PublishActiveFile's constructor requires
-            // the UI thread.
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
-
-            OleMenuCommandService commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
-            Instance = new PublishActiveFile(package, commandService);
-        }
-
-        /// <summary>
-        /// This function is the callback used to execute the command when the menu item is clicked.
-        /// See the constructor to see how the menu item is associated with this function using
-        /// OleMenuCommandService service and MenuCommand class.
-        /// </summary>
-        /// <param name="sender">Event sender.</param>
-        /// <param name="e">Event args.</param>
-        private void Execute(object sender, EventArgs e)
-        {
-            //ThreadHelper.ThrowIfNotOnUIThread();
-            // 发布当前处于活动状态的1个文件 如果没有活动文件,不动作
-            var activedoc = ProjectHelpers.GetActiveDoc();
-            if (activedoc == null)
-            {
-                OutPutInfo.Info("未找到激活的文件"); return;
-            }
-
-            // 当前活动项目路径
-            Project activeProj = ProjectHelpers.GetActiveProject();
-            if (activeProj == null)
-            {
-                OutPutInfo.Info("未选中WEB项目"); return;
-            }
-            // 建立发布配置对象
-            EnvVar.ProjectDir = activeProj.GetRootFolder();
-            string res = PublishHelpers.CreatePublishCfg();
-            if (res != null)
-            {
-                OutPutInfo.Info(res); return;
-            }
-
-            // 取得要发布的文件路径
-            List<string> srcfiles = new List<string>
-            {
-                activedoc.FullName
-            };
-            // 发布处理
-            Task.Factory.StartNew(() =>
-              {
-                  string resinfo = PublishHelpers.PublishFiles(srcfiles);
-                  if (resinfo != null)
-                  {
-                      OutPutInfo.Info(resinfo);
-                  }
-              });
-        }
+            docView.FilePath
+        };
+#if DEBUG
+        OutPutInfo.Info(string.Join(" , ", srcfiles));
+        return;
+#endif
+        // 发布处理
+        //Task.Run(() =>
+        //  {
+        //      string resinfo = PublishHelpers.PublishFiles(srcfiles);
+        //      if (resinfo != null)
+        //      {
+        //          OutPutInfo.Info(resinfo);
+        //      }
+        //  });
     }
 }

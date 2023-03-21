@@ -10,24 +10,12 @@ namespace WebFilePublishVSIX
     static class OutPutInfo
     {
         /// <summary>
-        /// 错误提示弹出框
-        /// </summary>
-        /// <param name="ex"></param>
-        public static void Error(Exception ex)
-        {
-            MessageBox.Show(ex.Message + '\n' + ex.ToString(),
-               EnvVar.Name + "--异常提示",
-               MessageBoxButtons.OK, MessageBoxIcon.Warning);
-        }
-        /// <summary>
         /// 信息提示弹出框
         /// </summary>
         /// <param name="msg"></param>
         public static void Info(string msg)
         {
-            MessageBox.Show(msg,
-               EnvVar.Name + "--信息提示",
-               MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            VS.MessageBox.ShowWarning(msg, EnvVar.Name);
         }
 
         // 这个弹出框需要server参数,麻烦,用winform方便
@@ -47,36 +35,33 @@ namespace WebFilePublishVSIX
         /// </summary>
         /// <param name="msg">文本</param>
         /// <param name="clear">是否清空原有信息</param>
-        public static void VsOutWind(string msg, bool clear = false)
+        public static async Task VsOutPutWindow(string msg, bool clear = false)
         {
-            //ThreadHelper.ThrowIfNotOnUIThread();
-            // 输出窗口集合
-            EnvDTE.OutputWindowPanes panels =
-                EnvVar._dte.ToolWindows.OutputWindow.OutputWindowPanes;
-            // 输出窗口固定的自定义项标题
-            string title = EnvVar.Name;
-            try
+            OutputWindowPane panel;
+            if (EnvVar.outPutWinPanelGuid != default)
             {
-                // If the pane exists already, write to it.
-                panels.Item(title);
+                panel = await VS.Windows.GetOutputWindowPaneAsync(EnvVar.outPutWinPanelGuid);
             }
-            catch (ArgumentException)
+            else
             {
-                // Create a new pane and write to it.
-                panels.Add(title);
+                panel = await VS.Windows.CreateOutputWindowPaneAsync(EnvVar.Name);
+                EnvVar.outPutWinPanelGuid = panel.Guid;
             }
-            EnvDTE.OutputWindowPane panel = panels.Item(title);
+
+
             // 清空消息
             if (clear)
-                panel.Clear();
+                await panel.ClearAsync();
+
             // 激活输出窗口的该面板
-            panel.Activate();
+            await panel.ActivateAsync();
+
             // 输出消息
-            panel.OutputString(msg);
+            await panel.WriteLineAsync(msg);
 
             // 显示(激活) vs"输出"窗口
-            string winCaption = "输出";
-            EnvVar._dte.Windows.Item(winCaption).Activate();
+            var window = await VS.Windows.FindWindowAsync(EnvVar.outPutWindowGuid);
+            await window.ShowAsync();
         }
     }
 }

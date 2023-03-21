@@ -1,0 +1,155 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--使用community-toolkit扩展工具包,而不是原始vs扩展 https://learn.microsoft.com/zh-cn/visualstudio/extensibility/vsix/visual-studio-community-toolkit?view=vs-2022-->
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <Extern href="stdidcmd.h"/>
+  <Extern href="vsshlids.h"/>
+  <Include href="KnownImageIds.vsct"/>
+  <Include href="VSGlobals.vsct"/>
+
+  <!--The Commands section is where commands, menus, and menu groups are defined.
+      This section uses a Guid to identify the package that provides the command defined inside it. -->
+  <!--命令节点是定义命令,菜单和菜单组的地方. 这节点使用guid来标识提供其中定义命令的包-->
+  <Commands package="WebFilePublishVSIX">
+    <Menus>
+      <!--扩展菜单下的顶层子菜单-->
+      <Menu guid="WebFilePublishVSIX" id="menuIdTop" priority="110" type="Menu">
+        <Parent guid="VSMainMenu" id="Extensions.DefaultGroup"/>
+        <Strings>
+          <ButtonText>PublishWeb</ButtonText>
+        </Strings>
+      </Menu>
+    </Menus>
+    <!-- In this section you can define new menu groups. A menu group is a container for
+         other menus or buttons (commands); from a visual point of view you can see the
+         group as the part of a menu contained between two lines. The parent of a group
+         must be a menu. -->
+    <!--在本节中,您可以定义新的菜单组.菜单组是其他菜单或按钮(命令);
+        从视觉角度,您可以看到组作为包含在两行之间的菜单的一部分.组的父级必须是菜单.-->
+    <Groups>
+      <Group guid="WebFilePublishVSIX" id="groupIdFile" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_ITEMNODE" />
+      </Group>
+      <Group guid="WebFilePublishVSIX" id="groupIdDir" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_FOLDERNODE" />
+      </Group>
+      <Group guid="WebFilePublishVSIX" id="groupIdWeb" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_PROJNODE" />
+      </Group>
+      <Group guid="WebFilePublishVSIX" id="groupIdActiveFile" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_NOCOMMANDS" />
+      </Group>
+      <!--扩展菜单下的顶层子菜单的组-->
+      <Group guid="WebFilePublishVSIX" id="groupIdTop" priority="100">
+        <Parent guid="WebFilePublishVSIX" id="menuIdTop"/>
+      </Group>
+    </Groups>
+
+    <!--Buttons section. -->
+    <Buttons>
+      <!--To define a menu group you have to specify its ID, the parent menu and its display priority.
+          The command is visible and enabled by default. If you need to change the visibility, status, etc, you can use
+          the CommandFlag node.
+          You can add more than one CommandFlag node e.g.:
+              <CommandFlag>DefaultInvisible</CommandFlag>
+              <CommandFlag>DynamicVisibility</CommandFlag>
+          If you do not want an image next to your command, remove the Icon node /> -->
+
+      <!--Button的guid值是GuidSymbol节点的name值,id值是其下字节点IDSymbol的name值(cmdid那个)-->
+      <!--Button子节点Parent的guid值也是GuidSymbol节点的name值,id值是其下字节点IDSymbol的name值(MyMenuGroup那个)-->
+      <Button guid="WebFilePublishVSIX" id="cmdidPublishActiveFile" priority="0x0100" type="Button">
+        <Parent guid="WebFilePublishVSIX" id="groupIdActiveFile" />
+        <Strings>
+          <ButtonText>发布当前编辑文件</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="WebFilePublishVSIX" id="cmdidPublishFile" priority="0x0100" type="Button">
+        <Parent guid="WebFilePublishVSIX" id="groupIdFile" />
+        <Strings>
+          <ButtonText>发布文件</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="WebFilePublishVSIX" id="cmdidPublishDir" priority="0x0100" type="Button">
+        <Parent guid="WebFilePublishVSIX" id="groupIdDir" />
+        <Strings>
+          <ButtonText>发布文件夹</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="WebFilePublishVSIX" id="cmdidPublishWeb" priority="0x0100" type="Button">
+        <Parent guid="WebFilePublishVSIX" id="groupIdWeb" />
+        <Strings>
+          <ButtonText>发布Web</ButtonText>
+        </Strings>
+      </Button>
+    </Buttons>
+  </Commands>
+
+  <!--4个命令在扩展菜单下,另外放置一份
+      https://learn.microsoft.com/zh-cn/visualstudio/extensibility/creating-reusable-groups-of-buttons?view=vs-2022
+      -->
+  <CommandPlacements>
+    <CommandPlacement guid="WebFilePublishVSIX" id="cmdidPublishActiveFile" priority="0x0105">
+      <Parent guid="WebFilePublishVSIX" id="groupIdTop"/>
+    </CommandPlacement>
+    <CommandPlacement guid="WebFilePublishVSIX" id="cmdidPublishFile" priority="0x0105">
+      <Parent guid="WebFilePublishVSIX" id="groupIdTop"/>
+    </CommandPlacement>
+    <CommandPlacement guid="WebFilePublishVSIX" id="cmdidPublishDir" priority="0x0105">
+      <Parent guid="WebFilePublishVSIX" id="groupIdTop"/>
+    </CommandPlacement>
+    <CommandPlacement guid="WebFilePublishVSIX" id="cmdidPublishWeb" priority="0x0105">
+      <Parent guid="WebFilePublishVSIX" id="groupIdTop"/>
+    </CommandPlacement>
+  </CommandPlacements>
+
+  <!--快捷键
+	https://docs.microsoft.com/zh-cn/visualstudio/extensibility/binding-keyboard-shortcuts-to-menu-items?view=vs-2022
+    https://learn.microsoft.com/zh-cn/visualstudio/extensibility/keybindings-element?view=vs-2022
+	-->
+  <!--Keybinding的guid值是GuidSymbol节点的name值,id值是其下字节点IDSymbol的name值(cmdid那个)-->
+  <!--示例1: mod1="Control" key1="A" // 按住ctrl不放,再按A,这是最简单的情况-->
+  <!--示例2: mod1="Control Alt" key1="A" // 按住ctrl和Alt不放,再按A,这是用2个控制键,也可以用3个:mod1="Control Shift Alt"-->
+  <!--示例3: mod1="Control" key1="A" key2="B" // 按住ctrl不放,再按A.然后松开,再按B-->
+  <!--示例4: mod1="Control" mod2="Control" key1="A" key2="B" // 按住ctrl不放,再按A和B-->
+  <KeyBindings>
+    <KeyBinding guid="WebFilePublishVSIX" id="cmdidPublishActiveFile" mod1="ALT" mod2="ALT" key1="Q" key2="Q" editor="guidVSStd97" />
+    <KeyBinding guid="WebFilePublishVSIX" id="cmdidPublishFile" mod1="ALT" mod2="ALT" key1="1" key2="1" editor="guidVSStd97" />
+    <KeyBinding guid="WebFilePublishVSIX" id="cmdidPublishDir" mod1="ALT" mod2="ALT" key1="2" key2="2" editor="guidVSStd97" />
+    <KeyBinding guid="WebFilePublishVSIX" id="cmdidPublishWeb" mod1="ALT" mod2="ALT" key1="3" key2="3" editor="guidVSStd97" />
+  </KeyBindings>
+
+  <Symbols>
+    <!-- This is the package guid.注意这里是命令/组/菜单的名字,类似程序中定义变量.先在这里定义后,再到其它节中使用.-->
+    <!--GuidSymbol节定义命令guid属性,name定义guid属性名,value定义其值-->
+
+    <!--命令项目定义,对应WebFilePublishVSIXPackage.cs里的常量PackageGuidString -->
+    <GuidSymbol name="WebFilePublishVSIX" value="{383731c3-506b-4c02-87be-5dd6ac36d434}">
+
+      <!--IDSymbol节定义菜单/组/命令,name的值是引用该对象时设置的Id值-->
+      <!--name前缀约定 : 菜单menuId,组groupId,命令cmdId.-->
+      <!--value前缀约定 : 菜单1开头,组2开头,命令3开头-->
+      <!--用于cmdid的value值,一定要对应命令类的成员-常量值CommandId,否则点击命令时无效,这个值可以取个整数.(使用tool.kit工具包后,修改这个文件后,会自动修改类的对应成员)-->
+
+      <!--顶层菜单/组,位于VS"扩展"菜单下-->
+      <IDSymbol name="menuIdTop" value="1" />
+      <IDSymbol name="groupIdTop" value="2" />
+
+      <!--命令/组: 发布当前活动文档-->
+      <IDSymbol name="groupIdActiveFile" value="21" />
+      <IDSymbol name="cmdidPublishActiveFile" value="31" />
+
+      <!--命令/组: 发布选定文件-->
+      <IDSymbol name="groupIdFile" value="22" />
+      <IDSymbol name="cmdidPublishFile" value="32" />
+
+      <!--命令/组: 发布选定目录-->
+      <IDSymbol name="groupIdDir" value="23" />
+      <IDSymbol name="cmdidPublishDir" value="33" />
+
+      <!--命令/组: 发布选定项目-->
+      <IDSymbol name="groupIdWeb" value="24" />
+      <IDSymbol name="cmdidPublishWeb" value="34" />
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>
+<!--这个文件给定义菜单命令,菜单文字和快捷键.搞这点小事,实在是太麻烦了,XML就是没有JSON方便.有必要搞这么复杂吗,难道这就是设计?God save me!-->
