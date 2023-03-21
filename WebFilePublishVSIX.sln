@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31912.275
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebFilePublishVSIX", "WebFilePublishVSIX\WebFilePublishVSIX.csproj", "{C7CE12B5-E55B-4176-94BF-58C2298D41C5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VSIXService", "VSIXService\VSIXService.csproj", "{663490E4-105C-405B-8CAF-5127B5D45D47}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,14 @@ Global
 		{C7CE12B5-E55B-4176-94BF-58C2298D41C5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C7CE12B5-E55B-4176-94BF-58C2298D41C5}.Release|x86.ActiveCfg = Release|x86
 		{C7CE12B5-E55B-4176-94BF-58C2298D41C5}.Release|x86.Build.0 = Release|x86
+		{663490E4-105C-405B-8CAF-5127B5D45D47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{663490E4-105C-405B-8CAF-5127B5D45D47}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{663490E4-105C-405B-8CAF-5127B5D45D47}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{663490E4-105C-405B-8CAF-5127B5D45D47}.Debug|x86.Build.0 = Debug|Any CPU
+		{663490E4-105C-405B-8CAF-5127B5D45D47}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{663490E4-105C-405B-8CAF-5127B5D45D47}.Release|Any CPU.Build.0 = Release|Any CPU
+		{663490E4-105C-405B-8CAF-5127B5D45D47}.Release|x86.ActiveCfg = Release|Any CPU
+		{663490E4-105C-405B-8CAF-5127B5D45D47}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
