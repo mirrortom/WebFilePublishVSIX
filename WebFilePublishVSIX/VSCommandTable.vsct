@@ -123,7 +123,7 @@
     <!--GuidSymbol节定义命令guid属性,name定义guid属性名,value定义其值-->
 
     <!--命令项目定义,对应WebFilePublishVSIXPackage.cs里的常量PackageGuidString -->
-    <GuidSymbol name="WebFilePublishVSIX" value="{383731c3-506b-4c02-87be-5dd6ac36d434}">
+    <GuidSymbol name="WebFilePublishVSIX" value="{ec9d07de-9043-4ba8-a579-2063b62a455f}">
 
       <!--IDSymbol节定义菜单/组/命令,name的值是引用该对象时设置的Id值-->
       <!--name前缀约定 : 菜单menuId,组groupId,命令cmdId.-->

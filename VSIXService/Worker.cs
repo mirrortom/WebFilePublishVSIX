@@ -53,15 +53,18 @@ internal class Worker
                 LogHelp.SrvLog($"[{this.WrokId} Parse]1.命令已解析... id: [{Content.CmdId}] para: [{Content.ParaString}]");
                 Commander.Execute(Content);
                 LogHelp.SrvLog($"[{this.WrokId} Exec]2.命令已执行...[{Content.ResultCode}]");
-                ReturnOutput();
-                LogHelp.SrvLog($"[{this.WrokId} Return]3.结果已返回.");
             }
             catch (Exception e)
             {
-                LogHelp.SrvLog($"[{this.WrokId} Faild]消息处理异常: {e.Message}");
+                // 发生命令执行异常时,将信息返回到客户端
+                Content.Result = e.Message;
+                LogHelp.SrvLog($"[{this.WrokId} Faild]服务处理异常 [msg: {e.Message}] [stack: {e.StackTrace}]");
             }
             finally
             {
+                // 数据返回
+                ReturnOutput();
+                LogHelp.SrvLog($"[{this.WrokId} Return]3.结果已返回.");
                 // close();
                 stream.Close();
                 client.Close();
@@ -89,7 +92,7 @@ internal class Worker
     /// <param name="content"></param>
     private void ParseInput()
     {
-        byte[] buffer = new byte[1024];
+        byte[] buffer = new byte[Config.size];
         int lastIndex = stream.Read(buffer, 0, buffer.Length);
         if (lastIndex == 0)
             throw new VSIXServiceException("No any params,the CmdId is must!");

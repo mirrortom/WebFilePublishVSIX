@@ -12,7 +12,7 @@ namespace WebFilePublishVSIX
     /// </summary>
     internal sealed partial class PackageGuids
     {
-        public const string WebFilePublishVSIXString = "383731c3-506b-4c02-87be-5dd6ac36d434";
+        public const string WebFilePublishVSIXString = "ec9d07de-9043-4ba8-a579-2063b62a455f";
         public static Guid WebFilePublishVSIX = new Guid(WebFilePublishVSIXString);
     }
     /// <summary>

@@ -1,11 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 
-namespace WebFilePublishVSIX;
+namespace WebFilePublishVSIX.Helpers;
 
 /// <summary>
 /// 获取项目内资源
 /// </summary>
-public static class ProjectHelpers
+internal static class ProjectHelpers
 {
     /// <summary>
     /// 获取当前项目中的所有ProjectItem的路径(它不含bin下的内容,含项目源文件).
@@ -13,9 +15,10 @@ public static class ProjectHelpers
     /// </summary>
     /// <param name="project"></param>
     /// <returns></returns>
-    public static List<string> GetItemsPath(Project project)
+    internal static async Task<List<string>> GetItemsPathAsync()
     {
-        List<string> files = new List<string>();
+        Project project = await VS.Solutions.GetActiveProjectAsync();
+        List<string> files = new();
         foreach (var item in project.Children)
         {
             // 排除隐藏文件,比如obj和debug目录,通常情况下,隐藏文件不属于项目文件
@@ -36,7 +39,7 @@ public static class ProjectHelpers
     /// 项目资源管理窗口中,选中的: 文件/目录的全(物理)路径 ()
     /// </summary>
     /// <returns></returns>
-    public static async Task<IList<string>> GetSelectedItemPathsAsync()
+    internal static async Task<IList<string>> GetSelectedItemPathsAsync()
     {
         SolutionExplorerWindow solutionExplorer = await VS.Windows.GetSolutionExplorerWindowAsync();
         List<string> paths = new();
@@ -57,5 +60,34 @@ public static class ProjectHelpers
             }
         }
         return paths;
+    }
+
+    /// <summary>
+    /// 获取活动项目根目录路径
+    /// </summary>
+    /// <returns></returns>
+    internal static async Task<string> GetActiveProjectRootDirAsync()
+    {
+        Project activeProj = await VS.Solutions.GetActiveProjectAsync();
+        return activeProj == null ? null : Path.GetDirectoryName(activeProj.FullPath);
+    }
+    /// <summary>
+    /// 获取活动项目编译输出路径. 一个相对于项目根目录起始的目录 \bin\Debug|Release\net6.0\
+    /// </summary>
+    /// <returns></returns>
+    internal static async Task<string> GetActiveProjectOutBuildPathAsync()
+    {
+        Project activeProj = await VS.Solutions.GetActiveProjectAsync();
+        string outBinDir = await activeProj.GetAttributeAsync("OutputPath");
+        return outBinDir;
+    }
+    /// <summary>
+    /// 编译当前活动项目
+    /// </summary>
+    /// <returns></returns>
+    internal static async Task<bool> BuildProjectAsync()
+    {
+        Project activeProj = await VS.Solutions.GetActiveProjectAsync();
+        return await activeProj.BuildAsync();
     }
 }

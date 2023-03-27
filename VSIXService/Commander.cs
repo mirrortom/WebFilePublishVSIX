@@ -48,16 +48,8 @@ internal sealed class Commander
             return;
         }
         //
-        try
-        {
-            Cmds[key].Run(content);
-        }
-        catch (Exception e)
-        {
-            // 命令执行发生错误,消息要发到请求方.
-            content.ResultCode = 0;
-            content.Result = e.Message;
-        }
+        // 命令执行发生错误,异常在调用处捕获
+        Cmds[key].Run(content);
     }
 
     /// <summary>
