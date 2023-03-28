@@ -136,6 +136,7 @@ internal class Publisher
 
         // 活动项目根路径,最基础数据
         cmdcontext.ProjectRootDir = await ProjectHelpers.GetActiveProjectRootDirAsync();
+        cmdcontext.ProjectRootDir = Help.PathSplitChar(cmdcontext.ProjectRootDir);
         if (cmdcontext.ProjectRootDir == null)
         {
             cmdcontext.Info.AppendLine("未选择活动项目,根路径获取失败,发布已停止!");
@@ -151,6 +152,16 @@ internal class Publisher
         if (!Path.IsPathRooted(cmdcontext.CfgM.DistDir))
         {
             cmdcontext.CfgM.DistDir = Path.Combine(cmdcontext.ProjectRootDir, cmdcontext.CfgM.DistDir);
+        }
+
+        // razor页面搜索目录,加上全路径
+        if (cmdcontext.CfgM.RazorSearchDirs.Length > 0)
+        {
+            for (int i = 0; i < cmdcontext.CfgM.RazorSearchDirs.Length; i++)
+            {
+                string p = cmdcontext.CfgM.RazorSearchDirs[i];
+                cmdcontext.CfgM.RazorSearchDirs[i] = Help.PathSplitChar(Path.Combine(cmdcontext.ProjectRootDir, p));
+            }
         }
         return true;
     }
@@ -214,7 +225,7 @@ internal class Publisher
             if (filePathLower == jsonCfgPathLower)
                 continue;
             //
-            files.Add(item);
+            files.Add(Help.PathSplitChar(item));
         }
         cmdcontext.SrcFiles = files;
     }
@@ -242,12 +253,12 @@ internal class Publisher
                 // 如果是源代码目录下的,才要去掉
                 if (relPath.StartsWith(srcDir, true, null))
                 {
-                    relPath = item.Substring(srcDir.Length + 1);
+                    relPath = relPath.Substring(srcDir.Length + 1);
                 }
             }
 
             // 目标文件全路径 输出目录+相对路径
-            cmdcontext.TargetFiles.Add(Path.Combine(cmdcontext.CfgM.DistDir, relPath));
+            cmdcontext.TargetFiles.Add(Help.PathSplitChar(Path.Combine(cmdcontext.CfgM.DistDir, relPath)));
         }
     }
 

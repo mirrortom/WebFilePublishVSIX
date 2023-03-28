@@ -53,7 +53,7 @@ internal class ConfigM
     /// </summary>
     public string[] DenyDirs = { };
     /// <summary>
-    /// razor部分页搜索路径
+    /// razor部分页搜索路径 相对路径,相对于项目根目录
     /// </summary>
     public string[] RazorSearchDirs = { };
     /// <summary>
@@ -81,6 +81,8 @@ internal class ConfigM
                 var cfg = new ConfigM();
                 File.WriteAllText(cfgPath, ConfigM.CreateJson(cfg), Encoding.UTF8);
                 cmdContext.CfgM = cfg;
+                // 添加到项目中(这里在实际VS里使用失败,调试能成功)
+                //ProjectHelpers.AddFileToActiveProjectAsync(cfgPath).Wait();
                 return;
             }
             // 已有
@@ -168,12 +170,12 @@ internal class ConfigM
         sb.AppendLine($"  \"{k}\": {v},");
 
         //
-        sb.AppendLine("  // razor部分页搜索路径,razor页面引用的母版页部分页在此目录下查找");
+        sb.AppendLine("  // razor搜索路径(相对路径,相对于项目根目录,razor页面引用的母版页部分页在此目录下查找");
         k = nameof(cfg.RazorSearchDirs);
         k = Help.StartLower(k);
         v = "[]";
         sb.AppendLine($"  \"{k}\": {v},");
-        
+
         //
         sb.AppendLine("  // razor model数据,一个json键值对例如{ name : 'mirror' , ... },将作为匿名对象作为Model传给cshtml文件,调用方法@Model.name");
         k = nameof(cfg.RazorModel);

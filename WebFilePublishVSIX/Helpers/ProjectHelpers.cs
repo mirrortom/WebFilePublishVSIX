@@ -90,4 +90,14 @@ internal static class ProjectHelpers
         Project activeProj = await VS.Solutions.GetActiveProjectAsync();
         return await activeProj.BuildAsync();
     }
+    /// <summary>
+    /// 将文件添加到当前活动项目
+    /// </summary>
+    /// <param name="fullpath"></param>
+    /// <returns></returns>
+    internal static async Task AddFileToActiveProjectAsync(params string[] fullpath)
+    {
+        Project activeProj = await VS.Solutions.GetActiveProjectAsync();
+        await activeProj.AddExistingFilesAsync(fullpath);
+    }
 }

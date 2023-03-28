@@ -11,7 +11,7 @@ namespace WebFilePublishVSIX
         public const string Name = "WebFilePublishVSIX";
         public const string Description = @"publisher for web VSIX Project.";
         public const string Language = "en-US";
-        public const string Version = "1.1";
+        public const string Version = "1.11";
         public const string Author = "mirror space";
         public const string Tags = "";
     }
