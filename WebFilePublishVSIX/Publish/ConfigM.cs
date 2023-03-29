@@ -177,7 +177,7 @@ internal class ConfigM
         sb.AppendLine($"  \"{k}\": {v},");
 
         //
-        sb.AppendLine("  // razor model数据,一个json键值对例如{ name : 'mirror' , ... },将作为匿名对象作为Model传给cshtml文件,调用方法@Model.name");
+        sb.AppendLine("  // razor model数据,一个json键值对例如{ name : 'mirror' , ... },将作为dynamic对象作为Model传给cshtml文件,调用方法@Model.name");
         k = nameof(cfg.RazorModel);
         k = Help.StartLower(k);
         v = "{}";
