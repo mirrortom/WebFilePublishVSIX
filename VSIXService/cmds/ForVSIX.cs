@@ -1,11 +1,5 @@
 ﻿using RazorService;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 using VSIXService.Helpers;
 
 namespace VSIXService.cmds;
@@ -17,6 +11,7 @@ internal class ForVSIX : IFun
     public string Desc => "为WebFilePublishVSIX扩展项目执行任务.json参数:{SrcFiles:[],TargetFiles:[],SearchDirs:[],Model:{},MiniOutput:7}";
     private WorkContent content;
     private StringBuilder info;
+
     public void Run(WorkContent workcontent)
     {
         content = workcontent;
@@ -28,6 +23,7 @@ internal class ForVSIX : IFun
         // return
         content.Result = info.ToString();
     }
+
     private void CheckPara()
     {
         if (string.IsNullOrWhiteSpace(content.ParaString))
@@ -39,6 +35,7 @@ internal class ForVSIX : IFun
         if (content.ParaDynamic.TargetFiles == null)
             throw new VSIXServiceException("TargetFiles参数缺少!");
     }
+
     private void Publish()
     {
         // data init
@@ -54,87 +51,120 @@ internal class ForVSIX : IFun
         for (int i = 0; i < count; i++)
         {
             info.AppendLine($"{i + 1}.发布:{src[i]}");
-            string extName = Path.GetExtension(src[i]).ToLower();
-            string txt = File.ReadAllText(src[i]);
-            string outTxt;
-            // 根据扩展名选择输出方法
-            if (extName == ".cshtml")
-            {
-                outTxt = RazorOut(txt, searchDirs, model, miniTag);
-                // 将.cshtml改为.html
-                target[i] = $"{target[i][0..target[i].LastIndexOf('.')]}.html";
-            }
-            else
-            {
-                outTxt = FileOut(txt, extName, miniTag);
-            }
-            Directory.CreateDirectory(Path.GetDirectoryName(target[i]));
-            File.WriteAllText(target[i], outTxt, Encoding.UTF8);
-            info.AppendLine($"--已发布到{target[i]}");
+
+            string itemSrcPath = src[i];
+            string itemTargetPath = target[i];
+            // 输出文件
+            FileOutput(itemSrcPath, itemTargetPath, miniTag, searchDirs, model);
         }
         content.ResultCode = 1;
     }
 
     /// <summary>
-    /// js/css/html是否压缩输出,其它页面原样返回
+    /// 判断文件类型,处理后输出文件
     /// </summary>
-    /// <param name="text"></param>
-    /// <param name="ext"></param>
+    /// <param name="srcPath"></param>
+    /// <param name="targetPath"></param>
     /// <param name="miniTag"></param>
+    /// <param name="searchDirs"></param>
+    /// <param name="model"></param>
     /// <returns></returns>
-    private string FileOut(string text, string ext, int miniTag)
+    private void FileOutput(string srcPath, string targetPath, int miniTag, string[] searchDirs, dynamic model)
     {
-        // 判断压缩结果并返回压缩文本
-        string miniResult(string mini)
+        // 扩展名
+        string extName = Path.GetExtension(srcPath).ToLower();
+        // razor
+        if (extName == ".cshtml")
         {
-            string tag = ext[1..];
-            if (mini == null)
-            {
-                info.AppendLine($"  压缩{tag}失败,请检查{tag}文件语法错误!将直接输出.");
-                return text;
-            }
-            else
-            {
-                info.AppendLine($"  已压缩{tag}.");
-                return mini;
-            }
+            // .cshtml文件输出时,扩展名改为.html
+            string newTarget = $"{targetPath[0..targetPath.LastIndexOf('.')]}.html";
+            RazorOut(srcPath, newTarget, searchDirs, model, miniTag);
+            info.AppendLine($"--已发布到{newTarget}");
+            return;
         }
+        // js/css/html
+        if (extName == ".css" || extName == ".html" || extName == ".js")
+        {
+            HtmlCssJsOut(srcPath, targetPath, miniTag, extName);
+            info.AppendLine($"--已发布到{targetPath}");
+            return;
+        }
+        // other
+        File.Copy(srcPath, targetPath, true);
+        info.AppendLine($"--已发布到{targetPath}");
+    }
 
+    /// <summary>
+    /// js/css/html是否压缩输出
+    /// </summary>
+    /// <param name="src"></param>
+    /// <param name="target"></param>
+    /// <param name="miniTag"></param>
+    /// <param name="ext"></param>
+    private void HtmlCssJsOut(string src, string target, int miniTag, string ext)
+    {
+        string text = File.ReadAllText(src);
+        string mini = null;
         // js/css/html是否压缩
         if (ext == ".js" && new int[] { 4, 5, 6, 7 }.Contains(miniTag))
         {
-            string js = Minifier.Js(text);
-            return miniResult(js);
+            mini = Minifier.Js(text);
+            MiniInfo(mini, ext);
         }
         // css
-        if (ext == ".css" && new int[] { 2, 3, 6, 7 }.Contains(miniTag))
+        else if (ext == ".css" && new int[] { 2, 3, 6, 7 }.Contains(miniTag))
         {
-            string css = Minifier.Css(text);
-            return miniResult(css);
+            mini = Minifier.Css(text);
+            MiniInfo(mini, ext);
         }
         // html
-        if ((ext == ".html" || ext == ".htm") && new int[] { 1, 3, 5, 7 }.Contains(miniTag))
+        else if ((ext == ".html" || ext == ".htm") && new int[] { 1, 3, 5, 7 }.Contains(miniTag))
         {
-            string html = Minifier.Html(text);
-            return miniResult(html);
+            mini = Minifier.Html(text);
+            MiniInfo(mini, ext);
         }
-        // 其它页面直接返回
-        return text;
+        //
+        File.WriteAllText(target, mini ?? text, Encoding.UTF8);
     }
 
     /// <summary>
     /// razor页面编译输出
     /// </summary>
-    private string RazorOut(string text, string[] searchDirs, dynamic model, int miniTag)
+    private void RazorOut(string src, string target, string[] searchDirs, dynamic model, int miniTag)
     {
         // build razor
         // razor引用页搜索目录
         if (searchDirs.Length > 0)
         {
-            RazorCfg.AddSearchDirs(searchDirs);
+            RazorCfg.SetSearchDirs(searchDirs);
         }
-        string html = RazorServe.RunTxt(text, model ?? null);
+        string html = RazorServe.Run(src, model ?? null);
         info.AppendLine("  已编译Razor.");
-        return FileOut(html, ".html", miniTag);
+        if (new int[] { 1, 3, 5, 7 }.Contains(miniTag))
+        {
+            string mini = Minifier.Html(html);
+            MiniInfo(mini, ".html");
+            if (mini != null)
+            {
+                File.WriteAllText(target, mini, Encoding.UTF8);
+                return;
+            }
+        }
+
+        File.WriteAllText(target, html, Encoding.UTF8);
+    }
+
+    // html/js/css压缩结果信息提示
+    private void MiniInfo(string mini, string ext)
+    {
+        string tag = ext[1..];
+        if (mini == null)
+        {
+            info.AppendLine($"  压缩{tag}失败,请检查{tag}文件语法错误!将直接输出.");
+        }
+        else
+        {
+            info.AppendLine($"  已压缩{tag}.");
+        }
     }
 }

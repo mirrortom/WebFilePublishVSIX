@@ -23,7 +23,7 @@ internal class BuildRazor : IFun
         // razor引用页搜索目录 每次编译时,可以选不同位置
         if (content.ParaDynamic.ContainsKey("searchDirs"))
         {
-            RazorCfg.AddSearchDirs(content.ParaDynamic.searchDirs.ToString().Split('|'));
+            RazorCfg.SetSearchDirs(content.ParaDynamic.searchDirs.ToString().Split('|'));
         }
         // 编译razor
         string html = RazorServe.Run(path, content.ParaDynamic.model ?? null);
