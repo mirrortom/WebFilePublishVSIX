@@ -1,4 +1,5 @@
 ﻿using RazorService;
+using System.IO;
 using System.Text;
 using VSIXService.Helpers;
 
@@ -73,6 +74,9 @@ internal class ForVSIX : IFun
     {
         // 扩展名
         string extName = Path.GetExtension(srcPath).ToLower();
+        // 目标路径目录,不存在时建立
+        string dir = Path.GetDirectoryName(targetPath);
+        Directory.CreateDirectory(dir);
         // razor
         if (extName == ".cshtml")
         {
