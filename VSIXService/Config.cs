@@ -12,9 +12,9 @@ internal class Config
     public static IPAddress iPAddress = IPAddress.Parse("127.0.0.1");
     public const int port = 50_015;
     /// <summary>
-    /// 数据接收缓冲大小 4K
+    /// 数据接收缓冲大小 16K
     /// </summary>
-    public const int size = 4096;
+    public const int size = 16384;
     /// <summary>
     /// 代码片段目录
     /// </summary>
