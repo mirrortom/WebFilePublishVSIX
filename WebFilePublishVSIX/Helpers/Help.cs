@@ -37,4 +37,34 @@ internal class Help
     {
         return path.Replace('\\', '/');
     }
+
+    /// <summary>
+    /// 判断path是否属于dirPath下.true:属于.例如: d:/book/index.html属于d:/book
+    /// 而d:/bookmark/index.html不属于d:/book
+    /// </summary>
+    /// <param name="path"></param>
+    /// <param name="dirPath"></param>
+    /// <returns></returns>
+    internal static bool IsPathInDir(string path, string dirPath)
+    {
+        if (PathSplitChar(path).StartsWith(PathSplitChar(dirPath)
+        , StringComparison.OrdinalIgnoreCase))
+        {
+            var dirSplitChar = PathTrim(path, true).Substring(PathTrim(dirPath, true).Length, 1);
+            return dirSplitChar == "/" || dirSplitChar == "\\";
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// 判断两个路径是否相同.
+    /// </summary>
+    /// <param name="path1"></param>
+    /// <param name="path2"></param>
+    /// <returns></returns>
+    internal static bool IsPathEq(string path1, string path2)
+    {
+        return PathSplitChar(path1).Equals(
+        PathSplitChar(path2), StringComparison.OrdinalIgnoreCase);
+    }
 }

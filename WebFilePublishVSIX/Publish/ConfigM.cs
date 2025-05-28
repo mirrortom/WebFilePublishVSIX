@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
 using System.Text;
@@ -24,9 +25,14 @@ internal class ConfigM
     public string SourceDir = "src";
 
     /// <summary>
-    /// 发布目录名(例如: 'dist' 或 'd:/pubdir' 相对路径或绝对路径)
+    /// 发布目录名(例如: 'dist' 或 'd:/pubdir' 相对路径或绝对路径.相对路径会发布到项目根目录下.)
     /// </summary>
     public string DistDir = "dist";
+
+    /// <summary>
+    /// // 自定义发布对应关系.键是源文件或者目录(相对路径),值是发布路径,相对路径发布到项目根目录下
+    /// </summary>
+    public Dictionary<string, string> DistMaps = new();
 
     /// <summary>
     /// 允许发布的文件扩展名列表
@@ -128,11 +134,17 @@ internal class ConfigM
         sb.AppendLine($"  \"{k}\": \"{v}\",");
 
         //
-        sb.AppendLine("  // 发布目录名(例如: 'dist' 或 'd:/pubdir' 相对路径或绝对路径)");
+        sb.AppendLine("  // 发布目录路径(例如: 'dist' 或 'd:/pubdir'相对路径或绝对路径.相对路径会发布到项目根目录下.)");
         k = nameof(cfg.DistDir);
         k = Help.StartLower(k);
         v = cfg.DistDir;
         sb.AppendLine($"  \"{k}\": \"{v}\",");
+
+        sb.AppendLine("  // 自定义发布对应关系.键是源文件或者目录(相对路径),值是发布路径,相对路径发布到项目根目录下");
+        k = nameof(cfg.DistMaps);
+        k = Help.StartLower(k);
+        v = "{}";
+        sb.AppendLine($"  \"{k}\": {v},");
 
         //
         sb.AppendLine("  // 对js,css,html压缩输出(0=不压缩,7=都压缩. 1=html,2=css,4=js)");

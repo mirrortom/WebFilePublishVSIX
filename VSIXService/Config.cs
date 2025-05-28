@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -10,7 +11,11 @@ namespace VSIXService;
 internal class Config
 {
     public static IPAddress iPAddress = IPAddress.Parse("127.0.0.1");
+#if DEBUG
+    public const int port = 50_016;
+#else
     public const int port = 50_015;
+#endif
     /// <summary>
     /// 数据接收缓冲大小 16K
     /// </summary>

@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.Intrinsics.Arm;
 using System.Text;
 using VSIXService.Helpers;
 
@@ -12,7 +13,8 @@ internal sealed class Commander
     private static SortedDictionary<int, IFun> Cmds;
 
     /// <summary>
-    /// 在服务启动时运行一次
+    /// 在服务启动时运行一次.
+    /// 作用:加载命令目录
     /// </summary>
     internal static void Start()
     {
@@ -41,15 +43,14 @@ internal sealed class Commander
                 break;
         }
         // 服务命令
-        if (!Cmds.ContainsKey(key))
+        if (!Cmds.TryGetValue(key, out IFun? cmdFun))
         {
             content.ResultCode = 0;
             content.Result = "无效命令!";
             return;
         }
-        //
-        // 命令执行发生错误,异常在调用处捕获
-        Cmds[key].Run(content);
+
+        cmdFun.Run(content);
     }
 
     /// <summary>
@@ -57,22 +58,24 @@ internal sealed class Commander
     /// </summary>
     private static void LoadCommands()
     {
-        // 找出服务程序的程序集中所有实现了IConsoleApp的类
-        Type[] types = Assembly.GetExecutingAssembly().GetTypes();
+        // 找出服务程序的程序集中所有实现了IFun的类
+        var types = Assembly.GetExecutingAssembly()
+            .GetTypes()
+            .Where(t => t.GetInterface(nameof(IFun)) != null);
 
         foreach (Type t in types)
         {
-            if (t.GetInterface(nameof(IFun)) != null)
+            IFun obj = Activator.CreateInstance(t) as IFun;
+            if (Cmds.ContainsKey(obj.Id))
             {
-                IFun obj = Activator.CreateInstance(t) as IFun;
-                if (Cmds.ContainsKey(obj.Id))
-                {
-                    throw new VSIXServiceException($"服务启动失败,命令 ({obj.Id}) 重复!");
-                }
-                Cmds.Add(obj.Id, obj);
+                throw new VSIXServiceException($"服务启动失败,命令 ({obj.Id}) 重复!");
             }
+            Cmds.Add(obj.Id, obj);
         }
         LogHelp.SrvLog($"VSIXService服务已装载命令总数 : ({Cmds.Count})");
+#if DEBUG
+        Console.WriteLine($"VSIXService服务已装载命令总数 : ({Cmds.Count})");
+#endif
     }
 
     /// <summary>

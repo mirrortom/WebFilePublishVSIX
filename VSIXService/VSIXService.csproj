@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <Reference Include="RazorService">
-      <HintPath>..\..\RazorService\RazorService\bin\Release\net6.0\publish\win-x64\RazorService.dll</HintPath>
+      <HintPath>..\..\RazorService\RazorService\bin\Release\net8.0\RazorService.dll</HintPath>
     </Reference>
   </ItemGroup>
 

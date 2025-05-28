@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.Text;
+﻿using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
+using Microsoft.VisualStudio.Text;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -34,27 +35,27 @@ internal class Publisher
         cmdcontext.Info.AppendLine();
 
         // 1.获取数据
-        //// 发布相关基础数据(项目根目录,配置文件等)
+        // 发布相关基础数据(项目根目录,配置文件等)
         if (!await GetDataForPublishAsync())
         {
             await OutPutInfo.VsOutPutWindowAsync(cmdcontext.Info.ToString(), true);
             return;
         }
-        //// 要发布的文件
+        // 2.计算要发布的文件
+        // 根据配置文件的要求,排除不合要求的文件
         if (!await GetFileToPublishAsync())
         {
             await OutPutInfo.VsOutPutWindowAsync(cmdcontext.Info.ToString(), true);
             return;
         }
 
-        // 2.配置数据
-        //// 输出路径计算
+        // 3.计算输出路径
         TargetPath();
 
-        // 3.连接,调用服务
+        // 4.连接,调用服务
         await RequestServeAsync();
 
-        // 4.结果
+        // 5.结果显示
         cmdcontext.Info.AppendLine("END 发布结束<<<".PadRight(50, '-'));
         await OutPutInfo.VsOutPutWindowAsync(cmdcontext.Info.ToString(), true);
     }
@@ -79,19 +80,6 @@ internal class Publisher
                     cmdcontext.SrcFiles.Add(p);
             }
         }
-        else if (cmdcontext.CmdType == CmdTypes.PublishWeb)
-        {
-            List<string> pathItems = await ProjectHelpers.GetItemsPathAsync();
-            // 获取项目内所有文件和目录
-            foreach (var item in pathItems)
-            {
-                // 是目录,还要获取里面的所有文件
-                if (Directory.Exists(item))
-                    cmdcontext.SrcFiles.AddRange(Directory.GetFiles(item, "*", SearchOption.AllDirectories));
-                else if (File.Exists(item))
-                    cmdcontext.SrcFiles.Add(item);
-            }
-        }
         else if (cmdcontext.CmdType == CmdTypes.PublishFile)
         {
             var selectedItems = await ProjectHelpers.GetSelectedItemPathsAsync();
@@ -114,9 +102,22 @@ internal class Publisher
                     cmdcontext.SrcFiles.AddRange(Directory.GetFiles(dirPath, "*", SearchOption.AllDirectories));
             }
         }
+        else if (cmdcontext.CmdType == CmdTypes.PublishWeb)
+        {
+            List<string> pathItems = await ProjectHelpers.GetItemsPathAsync();
+            // 获取项目内所有文件和目录
+            foreach (var item in pathItems)
+            {
+                // 是目录,还要获取里面的所有文件
+                if (Directory.Exists(item))
+                    cmdcontext.SrcFiles.AddRange(Directory.GetFiles(item, "*", SearchOption.AllDirectories));
+                else if (File.Exists(item))
+                    cmdcontext.SrcFiles.Add(item);
+            }
+        }
 
         // 根据发布条件筛选
-        FilterFiles();
+        FilterFiles.Run(cmdcontext);
         // 至少要有一个文件发布
         if (cmdcontext.SrcFiles.Count == 0)
         {
@@ -136,12 +137,12 @@ internal class Publisher
 
         // 活动项目根路径,最基础数据
         cmdcontext.ProjectRootDir = await ProjectHelpers.GetActiveProjectRootDirAsync();
-        cmdcontext.ProjectRootDir = Help.PathSplitChar(cmdcontext.ProjectRootDir);
         if (cmdcontext.ProjectRootDir == null)
         {
             cmdcontext.Info.AppendLine("未选择活动项目,根路径获取失败,发布已停止!");
             return false;
         }
+        cmdcontext.ProjectRootDir = Help.PathSplitChar(cmdcontext.ProjectRootDir);
 
         // 获取发布配置文件,必要数据
         ConfigM.CreatePublishCfg(cmdcontext);
@@ -166,69 +167,6 @@ internal class Publisher
         return true;
     }
 
-    /// <summary>
-    /// 使用预定规则将不需要发布处理的文件清除,筛选出发布文件列表.
-    /// </summary>
-    /// <param name="filesPath"></param>
-    /// <returns></returns>
-    private void FilterFiles()
-    {
-        List<string> files = new();
-        // 此时的发布目录DistDir,必须已经是全路径
-        string outDirLower = Help.PathSplitChar(cmdcontext.CfgM.DistDir).ToLower();
-        string jsonCfgPathLower = Help.PathSplitChar(Path.Combine(cmdcontext.ProjectRootDir, EnvVar.PublishCfgName)).ToLower();
-        // 循环所有文件,筛选
-        foreach (var item in cmdcontext.SrcFiles)
-        {
-            // item可能为null,在调试时发现.可能是获取文件路径的接口有时候返回null,但没有发现.
-            if (string.IsNullOrEmpty(item)) continue;
-
-            string filePathLower = Help.PathSplitChar(item).ToLower();
-
-            // 可能是个目录,要排除
-            if (Directory.Exists(filePathLower))
-                continue;
-
-            // 如果文件位于发布目录下要排除掉.避免发布"发布目录里的文件".
-            // 例如发布目录是默认值dist时,这是位于项目根目录下的dist文件夹,如果意外被包含进项目,就会发生此情况
-            if (filePathLower.StartsWith(outDirLower))
-                continue;
-
-            // 只发布支持的扩展名
-            if (cmdcontext.CfgM.AllowExts.FirstOrDefault(o => o.ToLower() == Path.GetExtension(filePathLower)) == null)
-                continue;
-
-            // 排除不允许发布的文件后缀名
-            if (cmdcontext.CfgM.DenySuffix.FirstOrDefault
-                (o => filePathLower.EndsWith(o.ToLower())) != null)
-                continue;
-
-            // 排除不允许发布的目录,比较文件目录,是否为禁发目录开头
-            if (cmdcontext.CfgM.DenyDirs.FirstOrDefault(o =>
-            {
-                // 禁发目录取得全路径,再比较
-                string denyDir = Help.PathSplitChar(Path.Combine(cmdcontext.ProjectRootDir, o)).ToLower();
-                return filePathLower.StartsWith(denyDir);
-            }) != null)
-                continue;
-
-            // 排除不允许发布的文件,比较文件全路径名
-            if (cmdcontext.CfgM.DenyFiles.FirstOrDefault(o =>
-            {
-                // 禁发文件取得全路径,再比较
-                string denyFile = Help.PathSplitChar(Path.Combine(cmdcontext.ProjectRootDir, o)).ToLower();
-                return filePathLower == denyFile;
-            }) != null)
-                continue;
-
-            // 不发布配置文件
-            if (filePathLower == jsonCfgPathLower)
-                continue;
-            //
-            files.Add(Help.PathSplitChar(item));
-        }
-        cmdcontext.SrcFiles = files;
-    }
 
     #endregion 获取并检查数据
 
@@ -243,23 +181,82 @@ internal class Publisher
         cmdcontext.TargetFiles = new();
         foreach (var item in cmdcontext.SrcFiles)
         {
-            // 源文件从项目根目录起始的相对路径,如: wwwroot/xxx/yy
+            // 1.如果配置了发布路径,优先使用
+            string outPath = DistMapsRule(item, cmdcontext);
+            if (outPath != null)
+            {
+                cmdcontext.TargetFiles.Add(Help.PathSplitChar(outPath));
+                continue;
+            }
+            // 2.使用默认输出路径规则:源文件项目目录的根目录部分,替换成发布目录.
             string rootDir = Help.PathTrim(cmdcontext.ProjectRootDir);
             string relPath = item.Substring(rootDir.Length + 1);
-            // 源代码目录这一级(或者几级),去掉
+            // 源文件从项目根目录起始的相对路径,如: wwwroot/xxx/yy
+            // 如果配置文件中设置了源代码目录,并且存在,去掉这层目录
             if (!string.IsNullOrWhiteSpace(cmdcontext.CfgM.SourceDir))
             {
                 string srcDir = Help.PathTrim(cmdcontext.CfgM.SourceDir, true);
-                // 如果是源代码目录下的,才要去掉
-                if (relPath.StartsWith(srcDir, true, null))
+                // 如果文件属于源代码目录下
+                if (Help.IsPathInDir(item, Path.Combine(rootDir, srcDir)))
                 {
                     relPath = relPath.Substring(srcDir.Length + 1);
                 }
             }
-
             // 目标文件全路径 输出目录+相对路径
             cmdcontext.TargetFiles.Add(Help.PathSplitChar(Path.Combine(cmdcontext.CfgM.DistDir, relPath)));
         }
+    }
+
+    /// <summary>
+    /// 发布路径规则
+    /// </summary>
+    /// <param name="path"></param>
+    /// <param name="cmdcontext"></param>
+    /// <returns></returns>
+    private string DistMapsRule(string path, CmdContext cmdcontext)
+    {
+        if (cmdcontext.CfgM.DistMaps.Count == 0)
+            return null;
+        // 判断path是否为配置项里的文件或属于目录
+        // 配置项distMaps:{"inputFileOrDir": "outFileOrDir"}键是源文件(相对目录),值是目标目录路径
+        // inputFileOrDir示例:index.html或者dir/*.*
+        // outDir示例:e:/outDir或者outDir
+        string rootDir = Help.PathTrim(cmdcontext.ProjectRootDir);
+        string outDir = string.Empty;
+        // 优先匹配文件路径
+        string fileKey = cmdcontext.CfgM.DistMaps.Keys.FirstOrDefault
+        (k => Help.IsPathEq(path, Path.Combine(rootDir, k)));
+        if (fileKey != null)
+        {
+            outDir = cmdcontext.CfgM.DistMaps[fileKey];
+        }
+
+        // 再匹配目录
+        if (string.IsNullOrWhiteSpace(outDir))
+        {
+            foreach (var item in cmdcontext.CfgM.DistMaps)
+            {
+                string dirKey = item.Key;
+                string dirVal = item.Value;
+                if (string.IsNullOrWhiteSpace(dirKey) || string.IsNullOrWhiteSpace(dirVal))
+                    continue;
+                // 全路径,排除非目录
+                string dirPath = Help.PathTrim(Path.Combine(rootDir, dirKey).TrimEnd('*', '.', '*'));
+                if (!Directory.Exists(dirPath))
+                    continue;
+                // 文件是属于这个目录下的
+                if (Help.IsPathInDir(path, dirPath))
+                {
+                    outDir = dirVal;
+                }
+            }
+        }
+        if (string.IsNullOrWhiteSpace(outDir))
+            return null;
+
+        return Path.IsPathRooted(outDir) ?
+        Path.Combine(outDir, Path.GetFileName(path)) :
+        Path.Combine(rootDir, outDir, Path.GetFileName(path));
     }
 
     #endregion

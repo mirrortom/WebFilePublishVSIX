@@ -36,6 +36,9 @@ internal static class Connection
             while (!IsCancel)
             {
                 LogHelp.SrvLog("监听循环等待处理链接中...");
+#if DEBUG
+                Console.WriteLine("监听循环等待处理链接中");
+#endif
                 TcpClient client = await Listener.AcceptTcpClientAsync(CancelTokenForAcceptTcpClient.Token);
                 new Worker(client);
             }
@@ -44,7 +47,11 @@ internal static class Connection
         {
             // 等待请求发生异常,需要重新启动程序
             // 通常是关闭服务引发(在控制台按ctrl+c,在windos服务界面点击停止),Token信号执行取消,导致监听程序停止.
-            LogHelp.SrvLog($"Connection连接发生异常: [{e.Message}] VSIXService服务需要重启!");
+            string errMsg = $"Connection连接发生异常: [{e.Message}] VSIXService服务需要重启!";
+            LogHelp.SrvLog(errMsg);
+#if DEBUG
+            Console.WriteLine(errMsg);
+#endif
         }
     }
 

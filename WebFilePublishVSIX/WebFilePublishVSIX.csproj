@@ -60,6 +60,7 @@
     <Compile Include="Helpers\Help.cs" />
     <Compile Include="Helpers\OutPutInfo.cs" />
     <Compile Include="Helpers\ProjectHelpers.cs" />
+    <Compile Include="Publish\FilterFiles.cs" />
     <Compile Include="Publish\Publisher.cs" />
     <Compile Include="Publish\CmdContext.cs" />
     <Compile Include="Publish\ConfigM.cs" />

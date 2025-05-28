@@ -13,6 +13,9 @@ internal sealed class MainService : IHostedService
         Commander.Start();
         Connection.Start();
         RazorCfg.StartTimer();
+#if DEBUG
+        Console.WriteLine("开启服务VSIXService!(控制台测试)");
+#endif
         return Task.CompletedTask;
     }
 
@@ -21,6 +24,9 @@ internal sealed class MainService : IHostedService
         LogHelp.SrvLog("End VSIXService服务关闭!");
         Connection.Stop();
         RazorCfg.StopTimer();
+#if DEBUG
+        Console.WriteLine("关闭服务VSIXService!(控制台测试)");
+#endif
         return Task.CompletedTask;
     }
 }
