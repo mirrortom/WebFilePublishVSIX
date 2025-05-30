@@ -72,13 +72,15 @@ internal class FilterFiles
             return false;
 
         // 文件是否位于不允许发布的目录下.
-        if (context.CfgM.DenyDirs.FirstOrDefault(o =>
+        foreach (var item in context.CfgM.DenyDirs)
         {
             // 禁发目录取得全路径,再比较
-            string denyDir = Help.PathSplitChar(Path.Combine(context.ProjectRootDir, o));
-            return path.StartsWith(denyDir, true, null);
-        }) != null)
-            return false;
+            string denyDir = Path.Combine(context.ProjectRootDir, item);
+            if (Help.IsPathInDir(path, denyDir))
+            {
+                return false;
+            }
+        }
         return true;
     }
 
