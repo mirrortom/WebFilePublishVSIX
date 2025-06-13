@@ -113,15 +113,15 @@ internal class FilterFiles
     private static bool FileNameRule(string path, CmdContext context)
     {
         // 排除不允许发布的文件,比较文件全路径名
-        if (context.CfgM.DenyFiles.FirstOrDefault(o =>
+        foreach (var deny in context.CfgM.DenyFiles)
         {
             // 禁发文件取得全路径,再比较
-            string denyFile = Help.PathSplitChar(Path.Combine(context.ProjectRootDir, o)).ToLower();
-            return path.ToLower() == denyFile;
-        }) != null)
-            return false;
+            string denyFile = Help.PathSplitChar(Path.Combine(context.ProjectRootDir, deny));
+            if (Help.IsPathEq(path, denyFile))
+                return false;
+        }
 
         // 不发布配置文件
-        return path.ToLower() != Help.PathSplitChar(Path.Combine(context.ProjectRootDir, EnvVar.PublishCfgName)).ToLower();
+        return false == Help.IsPathEq(path, Path.Combine(context.ProjectRootDir, EnvVar.PublishCfgName));
     }
 }
