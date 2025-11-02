@@ -37,7 +37,7 @@ internal class ConfigM
     /// <summary>
     /// 允许发布的文件扩展名列表
     /// </summary>
-    public string[] AllowExts = { ".htm", ".html", ".cshtml", ".config", ".js", ".css", ".json", ".jpg", ".jpeg", ".gif", ".png", ".bmp", ".woff", ".woff2", ".ttf", ".svg", ".eot", ".otf" };
+    public string[] AllowExts = { ".htm", ".html", ".razor", ".cshtml", ".config", ".js", ".css", ".json", ".jpg", ".jpeg", ".gif", ".png", ".bmp", ".woff", ".woff2", ".ttf", ".svg", ".eot", ".otf" };
 
     /// <summary>
     /// 不允许发布的文件后缀名

@@ -78,7 +78,7 @@ internal class ForVSIX : IFun
         string dir = Path.GetDirectoryName(targetPath);
         Directory.CreateDirectory(dir);
         // razor
-        if (extName == ".cshtml")
+        if (extName == ".razor" || extName == ".cshtml")
         {
             // .cshtml文件输出时,扩展名改为.html
             string newTarget = $"{targetPath[0..targetPath.LastIndexOf('.')]}.html";

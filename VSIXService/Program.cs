@@ -3,7 +3,7 @@ using Microsoft.Extensions.Hosting;
 using VSIXService;
 
 IHost host = new HostBuilder()
-    //.UseWindowsService()
+    .UseWindowsService()
     .ConfigureServices(services =>
     {
         services.AddHostedService<MainService>();
