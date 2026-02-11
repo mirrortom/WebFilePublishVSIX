@@ -1,13 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="WebFilePublishVSIX.560f5ecd-9894-4105-b2ae-5899c8ad2048" Version="1.12" Language="en-US" Publisher="mirror space" />
+        <Identity Id="WebFilePublishVSIX.560f5ecd-9894-4105-b2ae-5899c8ad2048" Version="1.13" Language="en-US" Publisher="mirror space" />
         <DisplayName>WebFilePublishVSIX</DisplayName>
         <Description xml:space="preserve">publisher for web VSIX Project.</Description>
         <Icon>Resources\PublishFilePackage.ico</Icon>
     </Metadata>
     <Installation>
-        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0, 18.0)">
+        <!-- 放宽目标 Visual Studio 版本范围，确保包含未来 VS2026 -->
+        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0,19.0)">
             <ProductArchitecture>amd64</ProductArchitecture>
         </InstallationTarget>
     </Installation>
